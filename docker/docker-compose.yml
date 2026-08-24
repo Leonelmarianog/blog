@@ -1,0 +1,42 @@
+# Dev backing services for the blog baseline.
+# Only postgres + redis are defined here. Garage (S3-compatible dev storage)
+# and Mailpit (dev SMTP) are added in their respective plans (media / mail+queue).
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: blog
+      POSTGRES_PASSWORD: blog
+      POSTGRES_DB: blog
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog -d blog"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # --- Deferred to later plans (kept here as a reminder, commented out) ---
+  # garage:    # Plan 6 (media/storage) — needs garage.toml + bucket init
+  # mailpit:   # Plan 7 (mail/queue)    — image: axllent/mailpit, ports 1025/8025
+
+volumes:
+  pgdata:
+  redisdata:
