@@ -8,4 +8,5 @@ module.exports = {
     '^@infra/(.*)$': '<rootDir>/src/infrastructure/$1',
   },
   testMatch: ['<rootDir>/test/**/*.spec.ts'],
+  setupFiles: ['<rootDir>/test/setup-env.ts'],
 };

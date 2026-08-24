@@ -4,7 +4,7 @@ import boundaries from 'eslint-plugin-boundaries';
 import globals from 'globals';
 
 export default [
-  { ignores: ['dist/', 'node_modules/', 'src/infrastructure/persistence/prisma/generated/'] },
+  { ignores: ['dist/', 'node_modules/', 'src/infrastructure/persistence/prisma/generated/', 'test/lint/fixtures/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -23,20 +23,28 @@ export default [
         node: { extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mjs'] },
       },
       'boundaries/elements': [
+        { type: 'composition-root', pattern: 'src/main.ts' },
+        { type: 'composition-root', pattern: 'src/app.module.ts' },
         { type: 'kernel-domain', pattern: 'src/shared-kernel/domain/**' },
         { type: 'kernel-application', pattern: 'src/shared-kernel/application/**' },
+        { type: 'kernel-application-port', pattern: 'src/shared-kernel/application/ports/**' },
         { type: 'kernel-presentation', pattern: 'src/shared-kernel/presentation/**' },
         { type: 'context-domain', pattern: 'src/contexts/*/domain/**' },
         { type: 'context-application', pattern: 'src/contexts/*/application/**' },
+        { type: 'context-application-port', pattern: 'src/contexts/*/application/ports/**' },
         { type: 'context-presentation', pattern: 'src/contexts/*/presentation/**' },
         { type: 'infrastructure', pattern: 'src/infrastructure/**' },
       ],
     },
     plugins: { boundaries },
     rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'boundaries/element-types': [
         'error',
         {
+          // NOTE: the element types + rules here are mirrored in
+          // test/lint/boundaries.spec.ts for the committed regression test.
+          // Keep them in sync when editing.
           // Unrecognized dependencies (external packages, composition-root files) are allowed;
           // recognized-but-not-allowed dependencies are disallowed. Direction is enforced
           // by the explicit allow-lists below.
@@ -49,6 +57,19 @@ export default [
           // does not exist in eslint-plugin-boundaries v5, which rejects unknown properties).
           default: 'disallow',
           rules: [
+            {
+              from: 'composition-root',
+              allow: [
+                'composition-root',
+                'kernel-domain',
+                'kernel-application',
+                'kernel-presentation',
+                'context-domain',
+                'context-application',
+                'context-presentation',
+                'infrastructure',
+              ],
+            },
             { from: 'kernel-domain', allow: ['kernel-domain'] },
             { from: 'kernel-application', allow: ['kernel-domain', 'kernel-application'] },
             { from: 'kernel-presentation', allow: ['kernel-application', 'kernel-presentation'] },
@@ -58,7 +79,10 @@ export default [
               allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application'],
             },
             { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
-            { from: 'infrastructure', allow: ['context-application', 'infrastructure'] },
+            {
+              from: 'infrastructure',
+              allow: ['kernel-domain', 'kernel-application', 'context-application-port', 'infrastructure'],
+            },
           ],
         },
       ],
