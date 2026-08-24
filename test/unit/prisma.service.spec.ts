@@ -2,7 +2,7 @@ import { PrismaClient, Prisma } from '@infra/persistence/prisma/client';
 import { PrismaService } from '@infra/persistence/prisma/prisma.service';
 
 describe('PrismaService', () => {
-  it('is a PrismaClient instance', () => {
+  it('behaves as a PrismaClient', () => {
     const svc = new PrismaService('postgresql://blog:blog@localhost:5432/blog');
     // Prisma 7's PrismaClient constructor returns a custom null-prototype object
     // rather than a traditional class instance, so `instanceof PrismaClient` does

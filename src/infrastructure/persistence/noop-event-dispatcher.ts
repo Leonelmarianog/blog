@@ -10,6 +10,6 @@ import { DomainEvent } from '@kernel/domain';
 @Injectable()
 export class NoopEventDispatcher implements EventDispatcherPort {
   async dispatchAll(_events: readonly DomainEvent[]): Promise<void> {
-    void _events; // intentionally no-op
+    // intentionally empty
   }
 }

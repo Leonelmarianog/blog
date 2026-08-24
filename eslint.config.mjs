@@ -38,6 +38,7 @@ export default [
     },
     plugins: { boundaries },
     rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'boundaries/element-types': [
         'error',
         {
