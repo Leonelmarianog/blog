@@ -15,11 +15,14 @@ export default [
   {
     settings: {
       // The boundaries plugin uses eslint-module-utils/resolve to map an import string to a
-      // file path before classifying the target as an element. By default the node resolver
-      // only tries .js/.json/.node, so TypeScript relative imports (e.g. `../application/use-case.base`)
-      // don't resolve and element-types rules never fire. Adding .ts to the node resolver's
-      // extensions fixes this without an extra dependency.
+      // file path before classifying the target as an element. Two resolvers are wired:
+      //  - `typescript` resolves the @kernel/*, @contexts/*, @infra/* path aliases declared in
+      //    tsconfig.json (project: './tsconfig.json') so alias imports in src/ are classified
+      //    and enforced. Without it a disallowed alias import (e.g. infrastructure ->
+      //    @contexts/iam/domain) would slip through silently — the original gap this closes.
+      //  - `node` (with .ts in extensions) resolves relative TypeScript imports as a fallback.
       'import/resolver': {
+        typescript: { project: './tsconfig.json', extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mjs'] },
         node: { extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mjs'] },
       },
       'boundaries/elements': [
@@ -39,6 +42,14 @@ export default [
     plugins: { boundaries },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    // element-types governs production source only. Test files are not elements (every
+    // element pattern is src/**) so they are exempt regardless, but scoping the rule to
+    // src/** makes that explicit and avoids re-evaluating resolved alias imports under test/.
+    files: ['src/**'],
+    rules: {
       'boundaries/element-types': [
         'error',
         {
