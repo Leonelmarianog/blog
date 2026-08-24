@@ -1,0 +1,15 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "./generated"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// No models yet. Aggregate tables (User, Session, Token, Asset, ...) are added
+// alongside their domain aggregates in Plans 3 and 6. This schema exists so the
+// generation + migration pipeline is verified against a real Postgres now.
+// NOTE: In Prisma 7 the connection URL moved from `datasource.url` here to
+// `prisma.config.ts` (datasource.url). See that file for the env-based URL.
