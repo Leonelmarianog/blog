@@ -1,4 +1,4 @@
-import { AggregateRoot, DomainEvent, Identifier, Entity } from '@kernel/domain';
+import { AggregateRoot, DomainEvent, Identifier } from '@kernel/domain';
 
 class Created extends DomainEvent {}
 
