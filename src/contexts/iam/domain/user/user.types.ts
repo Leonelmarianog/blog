@@ -1,0 +1,1 @@
+export type Identifier<B extends string> = string & { readonly __brand: B };
