@@ -5,10 +5,12 @@ import path from 'node:path';
 
 const linter = new Linter();
 
-// NOTE: the element types + rules here are mirrored in eslint.config.mjs.
-// Keep them in sync when editing. The config is expressed in ESLint v9 flat
-// config form (languageOptions.parser, files: ['**']) so the Linter API can
-// classify both the source filename and the resolved import target.
+// NOTE: the element types, rules, and import/resolver (typescript + node) here are
+// mirrored in eslint.config.mjs. Keep them in sync when editing. The config is
+// expressed in ESLint v9 flat config form (languageOptions.parser, files: ['**'])
+// so the Linter API can classify both the source filename and the resolved import
+// target — the typescript resolver maps @kernel/* / @contexts/* / @infra/* aliases
+// to real src/** paths via tsconfig.json so alias imports are classified too.
 const config = {
   files: ['**'],
   plugins: { boundaries },
@@ -17,7 +19,10 @@ const config = {
     parserOptions: { sourceType: 'module' },
   },
   settings: {
-    'import/resolver': { node: { extensions: ['.ts', '.js', '.json'] } },
+    'import/resolver': {
+      typescript: { project: path.resolve('tsconfig.json'), extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mjs'] },
+      node: { extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mjs'] },
+    },
     'boundaries/elements': [
       { type: 'composition-root', pattern: 'src/main.ts' },
       { type: 'composition-root', pattern: 'src/app.module.ts' },
@@ -84,6 +89,22 @@ describe('boundary rules', () => {
   it('allows composition-root -> infrastructure', () => {
     const code = `import { PersistenceModule } from './infrastructure/persistence/persistence.module';\nexport const m = PersistenceModule;`;
     const messages = lintFixture('src/app.module.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  // Alias imports (@kernel/*, @contexts/*, @infra/*) are the dominant cross-layer import
+  // style in src/. These cases prove the typescript resolver maps them to real src/** paths
+  // so boundaries/element-types classifies and enforces them — closing the gap where a
+  // disallowed alias import previously passed lint silently.
+  it('disallows infrastructure -> context-domain via @contexts alias', () => {
+    const code = `import type { Identifier } from '@contexts/iam/domain/user/user.types';\nexport type X = Identifier<'User'>;`;
+    const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+  });
+
+  it('allows infrastructure -> kernel-application via @kernel alias', () => {
+    const code = `import type { UnitOfWorkPort } from '@kernel/application';\nexport type UoW = UnitOfWorkPort<unknown>;`;
+    const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
     expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
   });
 });
