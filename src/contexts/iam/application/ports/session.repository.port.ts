@@ -2,6 +2,8 @@ import type { Session } from '../../domain/session/session.entity';
 import type { SessionId } from '../../domain/session/session.types';
 import type { UserId } from '../../domain/user/user.types';
 
+export const SESSION_REPOSITORY = Symbol('SESSION_REPOSITORY');
+
 export interface SessionRepositoryPort<Tx = unknown> {
   findById(id: SessionId, tx?: Tx): Promise<Session | null>;
   findBySeriesHash(seriesHash: string, tx?: Tx): Promise<Session | null>;
