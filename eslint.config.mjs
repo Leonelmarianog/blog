@@ -96,7 +96,7 @@ export default [
             { from: 'kernel-domain', allow: ['kernel-domain'] },
             {
               from: 'kernel-application-port',
-              allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'],
+              allow: ['kernel-domain', 'kernel-application-port'],
             },
             { from: 'kernel-application', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
             { from: 'kernel-presentation', allow: ['kernel-application', 'kernel-presentation'] },
@@ -106,8 +106,6 @@ export default [
               allow: [
                 'context-domain',
                 'kernel-domain',
-                'kernel-application',
-                'context-application',
                 'context-application-port',
               ],
             },

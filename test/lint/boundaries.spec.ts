@@ -49,11 +49,11 @@ const config = {
         rules: [
           { from: 'composition-root', allow: ['composition-root', 'kernel-domain', 'kernel-application', 'kernel-presentation', 'context-domain', 'context-application', 'context-presentation', 'infrastructure'] },
           { from: 'kernel-domain', allow: ['kernel-domain'] },
-          { from: 'kernel-application-port', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
+          { from: 'kernel-application-port', allow: ['kernel-domain', 'kernel-application-port'] },
           { from: 'kernel-application', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
           { from: 'kernel-presentation', allow: ['kernel-application', 'kernel-presentation'] },
           { from: 'context-domain', allow: ['kernel-domain', 'context-domain'] },
-          { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
+          { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'context-application-port'] },
           { from: 'context-application', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
           { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
           { from: 'context-composition', allow: ['context-composition', 'kernel-domain', 'context-domain', 'kernel-application', 'kernel-application-port', 'context-application', 'context-application-port', 'context-presentation', 'infrastructure'] },
