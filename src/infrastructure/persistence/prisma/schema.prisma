@@ -8,8 +8,39 @@ datasource db {
   provider = "postgresql"
 }
 
-// No models yet. Aggregate tables (User, Session, Token, Asset, ...) are added
-// alongside their domain aggregates in Plans 3 and 6. This schema exists so the
-// generation + migration pipeline is verified against a real Postgres now.
-// NOTE: In Prisma 7 the connection URL moved from `datasource.url` here to
-// `prisma.config.ts` (datasource.url). See that file for the env-based URL.
+model User {
+  id            String   @id
+  email         String   @unique
+  passwordHash  String
+  role          String
+  emailVerified Boolean  @default(false)
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  sessions      Session[]
+  tokens        Token[]
+}
+
+model Session {
+  id         String   @id
+  userId     String
+  seriesHash String   @unique
+  tokenHash  String
+  expiresAt  DateTime
+  rotatedAt  DateTime
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Token {
+  id           String    @id
+  type         String
+  selector     String    @unique
+  verifierHash String
+  userId       String
+  expiresAt    DateTime
+  usedAt       DateTime?
+  user         User      @relation(fields: [userId], references: [id])
+}
