@@ -27,12 +27,15 @@ const config = {
       { type: 'composition-root', pattern: 'src/main.ts' },
       { type: 'composition-root', pattern: 'src/app.module.ts' },
       { type: 'kernel-domain', pattern: 'src/shared-kernel/domain/**' },
-      { type: 'kernel-application', pattern: 'src/shared-kernel/application/**' },
+      // Port types must be listed before their parent application type so that
+      // src/.../application/ports/** files are classified as the more specific
+      // *-port element (the first matching pattern wins in eslint-plugin-boundaries).
       { type: 'kernel-application-port', pattern: 'src/shared-kernel/application/ports/**' },
+      { type: 'kernel-application', pattern: 'src/shared-kernel/application/**' },
       { type: 'kernel-presentation', pattern: 'src/shared-kernel/presentation/**' },
       { type: 'context-domain', pattern: 'src/contexts/*/domain/**' },
-      { type: 'context-application', pattern: 'src/contexts/*/application/**' },
       { type: 'context-application-port', pattern: 'src/contexts/*/application/ports/**' },
+      { type: 'context-application', pattern: 'src/contexts/*/application/**' },
       { type: 'context-presentation', pattern: 'src/contexts/*/presentation/**' },
       { type: 'infrastructure', pattern: 'src/infrastructure/**' },
     ],
@@ -45,12 +48,14 @@ const config = {
         rules: [
           { from: 'composition-root', allow: ['composition-root', 'kernel-domain', 'kernel-application', 'kernel-presentation', 'context-domain', 'context-application', 'context-presentation', 'infrastructure'] },
           { from: 'kernel-domain', allow: ['kernel-domain'] },
+          { from: 'kernel-application-port', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
           { from: 'kernel-application', allow: ['kernel-domain', 'kernel-application'] },
           { from: 'kernel-presentation', allow: ['kernel-application', 'kernel-presentation'] },
           { from: 'context-domain', allow: ['kernel-domain', 'context-domain'] },
+          { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
           { from: 'context-application', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application'] },
           { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
-          { from: 'infrastructure', allow: ['kernel-domain', 'kernel-application', 'context-application-port', 'infrastructure'] },
+          { from: 'infrastructure', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port', 'context-application-port', 'infrastructure'] },
         ],
       },
     ],
@@ -83,6 +88,12 @@ describe('boundary rules', () => {
   it('allows infrastructure -> kernel-application port', () => {
     const code = `import type { UnitOfWorkPort } from '../../shared-kernel/application/ports/unit-of-work.port';\nexport type UoW = UnitOfWorkPort<unknown>;`;
     const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('allows infrastructure -> context-application port', () => {
+    const code = `import type { PasswordHasherPort } from '@contexts/iam/application/ports/password-hasher.port';\nexport type P = PasswordHasherPort;`;
+    const messages = lintFixture('src/infrastructure/crypto/foo.ts', code);
     expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
   });
 
