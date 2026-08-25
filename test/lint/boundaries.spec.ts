@@ -55,7 +55,7 @@ const config = {
           { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
           { from: 'context-application', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
           { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
-          { from: 'infrastructure', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port', 'context-application-port', 'infrastructure'] },
+          { from: 'infrastructure', allow: ['kernel-domain', 'context-domain', 'kernel-application', 'kernel-application-port', 'context-application-port', 'infrastructure'] },
         ],
       },
     ],
@@ -73,10 +73,10 @@ function lintFixture(filename: string, code: string) {
 }
 
 describe('boundary rules', () => {
-  it('disallows infrastructure -> context-domain', () => {
+  it('allows infrastructure -> context-domain', () => {
     const code = `import type { Identifier } from '../../contexts/iam/domain/user/user.types';\nexport type X = Identifier<'User'>;`;
     const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
-    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
   });
 
   it('disallows kernel-domain -> kernel-application', () => {
@@ -119,10 +119,10 @@ describe('boundary rules', () => {
   // style in src/. These cases prove the typescript resolver maps them to real src/** paths
   // so boundaries/element-types classifies and enforces them — closing the gap where a
   // disallowed alias import previously passed lint silently.
-  it('disallows infrastructure -> context-domain via @contexts alias', () => {
+  it('allows infrastructure -> context-domain via @contexts alias', () => {
     const code = `import type { Identifier } from '@contexts/iam/domain/user/user.types';\nexport type X = Identifier<'User'>;`;
     const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
-    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
   });
 
   it('allows infrastructure -> kernel-application via @kernel alias', () => {

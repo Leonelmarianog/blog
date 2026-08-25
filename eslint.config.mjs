@@ -117,6 +117,7 @@ export default [
               from: 'infrastructure',
               allow: [
                 'kernel-domain',
+                'context-domain',
                 'kernel-application',
                 'kernel-application-port',
                 'context-application-port',
@@ -142,6 +143,16 @@ export default [
           ],
         },
       ],
+    },
+  },
+  {
+    // Prisma's canonical `*GetPayload<{}>` "default full-row" idiom uses the empty
+    // object type, which the base `@typescript-eslint/no-empty-object-type` rule
+    // rejects. Scope the escape to persistence mappers + their unit test so the
+    // rule stays strict elsewhere. See Plan 4 Ruling 5.
+    files: ['src/infrastructure/persistence/mappers/**', 'test/unit/persistence/**'],
+    rules: {
+      '@typescript-eslint/no-empty-object-type': ['error', { allowObjectTypes: 'always' }],
     },
   },
 ];
