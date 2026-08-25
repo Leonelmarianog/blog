@@ -36,6 +36,7 @@ const config = {
       { type: 'context-domain', pattern: 'src/contexts/*/domain/**' },
       { type: 'context-application-port', pattern: 'src/contexts/*/application/ports/**' },
       { type: 'context-application', pattern: 'src/contexts/*/application/**' },
+      { type: 'context-composition', pattern: 'src/contexts/*/presentation/http/*.module.ts', mode: 'file' },
       { type: 'context-presentation', pattern: 'src/contexts/*/presentation/**' },
       { type: 'infrastructure', pattern: 'src/infrastructure/**' },
     ],
@@ -55,6 +56,7 @@ const config = {
           { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
           { from: 'context-application', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
           { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
+          { from: 'context-composition', allow: ['context-composition', 'kernel-domain', 'context-domain', 'kernel-application', 'kernel-application-port', 'context-application', 'context-application-port', 'context-presentation', 'infrastructure'] },
           { from: 'infrastructure', allow: ['kernel-domain', 'context-domain', 'kernel-application', 'kernel-application-port', 'context-application-port', 'infrastructure'] },
         ],
       },
@@ -129,5 +131,17 @@ describe('boundary rules', () => {
     const code = `import type { UnitOfWorkPort } from '@kernel/application';\nexport type UoW = UnitOfWorkPort<unknown>;`;
     const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
     expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('allows context-composition -> infrastructure', () => {
+    const code = `import { PrismaUserRepository } from '@infra/persistence/repositories/user.repository';\nexport const x = PrismaUserRepository;`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/iam.module.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('disallows context-presentation -> infrastructure', () => {
+    const code = `import { PrismaUserRepository } from '@infra/persistence/repositories/user.repository';\nexport const x = PrismaUserRepository;`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/controllers/foo.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
   });
 });

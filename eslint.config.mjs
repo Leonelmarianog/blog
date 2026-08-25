@@ -38,6 +38,15 @@ export default [
         { type: 'context-domain', pattern: 'src/contexts/*/domain/**' },
         { type: 'context-application-port', pattern: 'src/contexts/*/application/ports/**' },
         { type: 'context-application', pattern: 'src/contexts/*/application/**' },
+        // Composition-style modules (e.g. IamModule) live under presentation/http but wire
+        // infrastructure repositories/producers via DI, so they need a more-specific element
+        // type whose allow-list permits infrastructure. Listed before `context-presentation`
+        // (first-match wins); non-module files under presentation/** stay context-presentation.
+        // `mode: 'file'` is required: eslint-plugin-boundaries defaults to FOLDER mode, which
+        // appends `/**/*` to the pattern (so it would match only files INSIDE a directory named
+        // `*.module.ts`, never the module file itself). FILE mode matches the pattern against
+        // file paths directly, so `*.module.ts` actually classifies the module file.
+        { type: 'context-composition', pattern: 'src/contexts/*/presentation/http/*.module.ts', mode: 'file' },
         { type: 'context-presentation', pattern: 'src/contexts/*/presentation/**' },
         { type: 'infrastructure', pattern: 'src/infrastructure/**' },
       ],
@@ -113,6 +122,20 @@ export default [
               ],
             },
             { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
+            {
+              from: 'context-composition',
+              allow: [
+                'context-composition',
+                'kernel-domain',
+                'context-domain',
+                'kernel-application',
+                'kernel-application-port',
+                'context-application',
+                'context-application-port',
+                'context-presentation',
+                'infrastructure',
+              ],
+            },
             {
               from: 'infrastructure',
               allow: [
