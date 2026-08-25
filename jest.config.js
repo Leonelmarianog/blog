@@ -6,6 +6,7 @@ module.exports = {
     '^@kernel/(.*)$': '<rootDir>/src/shared-kernel/$1',
     '^@contexts/(.*)$': '<rootDir>/src/contexts/$1',
     '^@infra/(.*)$': '<rootDir>/src/infrastructure/$1',
+    '^@bootstrap/(.*)$': '<rootDir>/src/bootstrap/$1',
   },
   testMatch: ['<rootDir>/test/**/*.spec.ts'],
   setupFiles: ['<rootDir>/test/setup-env.ts'],
