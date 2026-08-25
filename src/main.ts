@@ -1,5 +1,6 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import express from 'express';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ConfigService } from './config/config.service';
@@ -14,18 +15,26 @@ import { FormViewInterceptor } from './bootstrap/exceptions/form-view.intercepto
 import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-session.use-case';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  // Nest registers its default body parsers (express.json/express.urlencoded) in
+  // NestApplication.init(), which listen() triggers — AFTER every app.use() below.
+  // Disable the defaults and register json/urlencoded explicitly at the top of the
+  // chain so req.body is populated before the CSRF middleware reads req.body._csrf.
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
   const config = app.get(ConfigService);
 
   // View engine first so res.render works in filters/middleware. `configureViewEngine`
   // expects the Express instance, not the Nest app; the HttpAdapter wraps Express.
   configureViewEngine(app.getHttpAdapter().getInstance());
 
+  // Body parsers must run before cookieParser/session/flash/csrf so req.body is
+  // populated before csrf reads req.body._csrf.
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
   // Express middleware chain — order matters (spec §11):
-  //   cookieParser -> session -> remember-me -> flash -> csrf
-  // Nest's default body parsers (json/urlencoded) are registered at app creation, so
-  // req.body is populated before csrf reads _csrf. remember-me needs a DI-resolved
-  // RotateSessionUseCase, which the composition root can resolve via app.get().
+  //   bodyParsers -> cookieParser -> session -> remember-me -> flash -> csrf
+  // remember-me needs a DI-resolved RotateSessionUseCase, which the composition root
+  // can resolve via app.get().
   const rememberMe = new RememberMeMiddleware(app.get(RotateSessionUseCase));
   const flash = new FlashMiddleware();
   const csrf = new CsrfMiddleware();
