@@ -1,3 +1,5 @@
+export const QUEUE_PRODUCER = Symbol('QUEUE_PRODUCER');
+
 export interface VerificationEmailPayload {
   userId: string;
   to: string;
