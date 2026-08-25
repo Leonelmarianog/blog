@@ -38,6 +38,15 @@ export default [
         { type: 'context-domain', pattern: 'src/contexts/*/domain/**' },
         { type: 'context-application-port', pattern: 'src/contexts/*/application/ports/**' },
         { type: 'context-application', pattern: 'src/contexts/*/application/**' },
+        // Composition-style modules (e.g. IamModule) live under presentation/http but wire
+        // infrastructure repositories/producers via DI, so they need a more-specific element
+        // type whose allow-list permits infrastructure. Listed before `context-presentation`
+        // (first-match wins); non-module files under presentation/** stay context-presentation.
+        // `mode: 'file'` is required: eslint-plugin-boundaries defaults to FOLDER mode, which
+        // appends `/**/*` to the pattern (so it would match only files INSIDE a directory named
+        // `*.module.ts`, never the module file itself). FILE mode matches the pattern against
+        // file paths directly, so `*.module.ts` actually classifies the module file.
+        { type: 'context-composition', pattern: 'src/contexts/*/presentation/http/*.module.ts', mode: 'file' },
         { type: 'context-presentation', pattern: 'src/contexts/*/presentation/**' },
         { type: 'infrastructure', pattern: 'src/infrastructure/**' },
       ],
@@ -45,6 +54,7 @@ export default [
     plugins: { boundaries },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'eol-last': ['error', 'always'],
     },
   },
   {
@@ -87,7 +97,7 @@ export default [
             { from: 'kernel-domain', allow: ['kernel-domain'] },
             {
               from: 'kernel-application-port',
-              allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'],
+              allow: ['kernel-domain', 'kernel-application-port'],
             },
             { from: 'kernel-application', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
             { from: 'kernel-presentation', allow: ['kernel-application', 'kernel-presentation'] },
@@ -97,8 +107,6 @@ export default [
               allow: [
                 'context-domain',
                 'kernel-domain',
-                'kernel-application',
-                'context-application',
                 'context-application-port',
               ],
             },
@@ -114,9 +122,24 @@ export default [
             },
             { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
             {
+              from: 'context-composition',
+              allow: [
+                'context-composition',
+                'kernel-domain',
+                'context-domain',
+                'kernel-application',
+                'kernel-application-port',
+                'context-application',
+                'context-application-port',
+                'context-presentation',
+                'infrastructure',
+              ],
+            },
+            {
               from: 'infrastructure',
               allow: [
                 'kernel-domain',
+                'context-domain',
                 'kernel-application',
                 'kernel-application-port',
                 'context-application-port',
@@ -142,6 +165,16 @@ export default [
           ],
         },
       ],
+    },
+  },
+  {
+    // Prisma's canonical `*GetPayload<{}>` "default full-row" idiom uses the empty
+    // object type, which the base `@typescript-eslint/no-empty-object-type` rule
+    // rejects. Scope the escape to persistence mappers + their unit test so the
+    // rule stays strict elsewhere. See Plan 4 Ruling 5.
+    files: ['src/infrastructure/persistence/mappers/**', 'test/unit/persistence/**'],
+    rules: {
+      '@typescript-eslint/no-empty-object-type': ['error', { allowObjectTypes: 'always' }],
     },
   },
 ];

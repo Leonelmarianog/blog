@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '../../config/config.service';
-import { EVENT_DISPATCHER } from '@kernel/application';
+import { EVENT_DISPATCHER, UNIT_OF_WORK } from '@kernel/application';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaUnitOfWork } from './unit-of-work';
 import { NoopEventDispatcher } from './noop-event-dispatcher';
@@ -15,7 +15,8 @@ import { NoopEventDispatcher } from './noop-event-dispatcher';
     },
     PrismaUnitOfWork,
     { provide: EVENT_DISPATCHER, useClass: NoopEventDispatcher },
+    { provide: UNIT_OF_WORK, useExisting: PrismaUnitOfWork },
   ],
-  exports: [PrismaService, PrismaUnitOfWork, EVENT_DISPATCHER],
+  exports: [PrismaService, PrismaUnitOfWork, EVENT_DISPATCHER, UNIT_OF_WORK],
 })
 export class PersistenceModule {}

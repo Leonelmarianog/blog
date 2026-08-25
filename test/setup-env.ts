@@ -4,3 +4,5 @@
 process.env.NODE_ENV = process.env.NODE_ENV ?? 'test';
 process.env.DATABASE_URL =
   process.env.DATABASE_URL ?? 'postgresql://blog:blog@localhost:5432/blog?schema=public';
+process.env.SESSION_SECRET = process.env.SESSION_SECRET ?? 'test-session-secret-32chars-long!!';
+process.env.REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';

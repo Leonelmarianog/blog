@@ -1,0 +1,10 @@
+<h2>Profile</h2>
+<dl>
+  <dt>Email</dt><dd>{{user.email}}</dd>
+  <dt>Role</dt><dd>{{user.role}}</dd>
+  <dt>Verified</dt><dd>{{user.emailVerified}}</dd>
+</dl>
+<form method="POST" action="/logout">
+  {{> csrf}}
+  <button type="submit">Log out</button>
+</form>

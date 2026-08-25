@@ -36,6 +36,7 @@ const config = {
       { type: 'context-domain', pattern: 'src/contexts/*/domain/**' },
       { type: 'context-application-port', pattern: 'src/contexts/*/application/ports/**' },
       { type: 'context-application', pattern: 'src/contexts/*/application/**' },
+      { type: 'context-composition', pattern: 'src/contexts/*/presentation/http/*.module.ts', mode: 'file' },
       { type: 'context-presentation', pattern: 'src/contexts/*/presentation/**' },
       { type: 'infrastructure', pattern: 'src/infrastructure/**' },
     ],
@@ -48,14 +49,15 @@ const config = {
         rules: [
           { from: 'composition-root', allow: ['composition-root', 'kernel-domain', 'kernel-application', 'kernel-presentation', 'context-domain', 'context-application', 'context-presentation', 'infrastructure'] },
           { from: 'kernel-domain', allow: ['kernel-domain'] },
-          { from: 'kernel-application-port', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
+          { from: 'kernel-application-port', allow: ['kernel-domain', 'kernel-application-port'] },
           { from: 'kernel-application', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
           { from: 'kernel-presentation', allow: ['kernel-application', 'kernel-presentation'] },
           { from: 'context-domain', allow: ['kernel-domain', 'context-domain'] },
-          { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
+          { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'context-application-port'] },
           { from: 'context-application', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
           { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
-          { from: 'infrastructure', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port', 'context-application-port', 'infrastructure'] },
+          { from: 'context-composition', allow: ['context-composition', 'kernel-domain', 'context-domain', 'kernel-application', 'kernel-application-port', 'context-application', 'context-application-port', 'context-presentation', 'infrastructure'] },
+          { from: 'infrastructure', allow: ['kernel-domain', 'context-domain', 'kernel-application', 'kernel-application-port', 'context-application-port', 'infrastructure'] },
         ],
       },
     ],
@@ -73,10 +75,10 @@ function lintFixture(filename: string, code: string) {
 }
 
 describe('boundary rules', () => {
-  it('disallows infrastructure -> context-domain', () => {
+  it('allows infrastructure -> context-domain', () => {
     const code = `import type { Identifier } from '../../contexts/iam/domain/user/user.types';\nexport type X = Identifier<'User'>;`;
     const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
-    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
   });
 
   it('disallows kernel-domain -> kernel-application', () => {
@@ -119,15 +121,27 @@ describe('boundary rules', () => {
   // style in src/. These cases prove the typescript resolver maps them to real src/** paths
   // so boundaries/element-types classifies and enforces them — closing the gap where a
   // disallowed alias import previously passed lint silently.
-  it('disallows infrastructure -> context-domain via @contexts alias', () => {
+  it('allows infrastructure -> context-domain via @contexts alias', () => {
     const code = `import type { Identifier } from '@contexts/iam/domain/user/user.types';\nexport type X = Identifier<'User'>;`;
     const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
-    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
   });
 
   it('allows infrastructure -> kernel-application via @kernel alias', () => {
     const code = `import type { UnitOfWorkPort } from '@kernel/application';\nexport type UoW = UnitOfWorkPort<unknown>;`;
     const messages = lintFixture('src/infrastructure/persistence/foo.ts', code);
     expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('allows context-composition -> infrastructure', () => {
+    const code = `import { PrismaUserRepository } from '@infra/persistence/repositories/user.repository';\nexport const x = PrismaUserRepository;`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/iam.module.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('disallows context-presentation -> infrastructure', () => {
+    const code = `import { PrismaUserRepository } from '@infra/persistence/repositories/user.repository';\nexport const x = PrismaUserRepository;`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/controllers/foo.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
   });
 });

@@ -1,0 +1,10 @@
+<h2>Login</h2>
+<form method="POST" action="/login">
+  {{> csrf}}
+  <label>Email <input type="email" name="email" value="{{email}}"></label>
+  {{#if errors.email}}<span class="err">{{errors.email}}</span>{{/if}}
+  <label>Password <input type="password" name="password" value="{{password}}"></label>
+  {{#if errors.password}}<span class="err">{{errors.password}}</span>{{/if}}
+  <label><input type="checkbox" name="rememberMe" value="1"> Remember me</label>
+  <button type="submit">Login</button>
+</form>

@@ -8,7 +8,8 @@
     "paths": {
       "@kernel/*": ["src/shared-kernel/*"],
       "@contexts/*": ["src/contexts/*"],
-      "@infra/*": ["src/infrastructure/*"]
+      "@infra/*": ["src/infrastructure/*"],
+      "@bootstrap/*": ["src/bootstrap/*"]
     },
     "strict": true,
     "esModuleInterop": true,

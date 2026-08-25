@@ -4,6 +4,8 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']),
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.string().trim().min(1),
+  SESSION_SECRET: z.string().trim().min(16),
+  REDIS_URL: z.string().trim().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
