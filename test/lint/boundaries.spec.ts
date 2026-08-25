@@ -49,11 +49,11 @@ const config = {
           { from: 'composition-root', allow: ['composition-root', 'kernel-domain', 'kernel-application', 'kernel-presentation', 'context-domain', 'context-application', 'context-presentation', 'infrastructure'] },
           { from: 'kernel-domain', allow: ['kernel-domain'] },
           { from: 'kernel-application-port', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
-          { from: 'kernel-application', allow: ['kernel-domain', 'kernel-application'] },
+          { from: 'kernel-application', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port'] },
           { from: 'kernel-presentation', allow: ['kernel-application', 'kernel-presentation'] },
           { from: 'context-domain', allow: ['kernel-domain', 'context-domain'] },
           { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
-          { from: 'context-application', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application'] },
+          { from: 'context-application', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
           { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
           { from: 'infrastructure', allow: ['kernel-domain', 'kernel-application', 'kernel-application-port', 'context-application-port', 'infrastructure'] },
         ],
@@ -94,6 +94,18 @@ describe('boundary rules', () => {
   it('allows infrastructure -> context-application port', () => {
     const code = `import type { PasswordHasherPort } from '@contexts/iam/application/ports/password-hasher.port';\nexport type P = PasswordHasherPort;`;
     const messages = lintFixture('src/infrastructure/crypto/foo.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('allows context-application -> context-application port (service imports its own port)', () => {
+    const code = `import type { PasswordHasherPort } from '@contexts/iam/application/ports/password-hasher.port';\nexport type P = PasswordHasherPort;`;
+    const messages = lintFixture('src/contexts/iam/application/services/foo.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('allows kernel-application -> kernel-application port', () => {
+    const code = `import type { UnitOfWorkPort } from './ports/unit-of-work.port';\nexport type UoW = UnitOfWorkPort<unknown>;`;
+    const messages = lintFixture('src/shared-kernel/application/foo.ts', code);
     expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
   });
 
