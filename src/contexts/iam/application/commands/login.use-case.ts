@@ -2,6 +2,7 @@ import { UseCase, ok, fail, type Result, type UnitOfWorkPort } from '@kernel/app
 import { DomainError } from '@kernel/domain';
 import { Email } from '../../domain/user/email.vo';
 import type { UserId } from '../../domain/user/user.types';
+import type { Role } from '../../domain/authorization/role';
 import type { UserRepositoryPort, SessionRepositoryPort } from '../ports';
 import { PasswordHasherService } from '../services/password-hasher.service';
 import { RememberMeTokenService } from '../services/remember-me-token.service';
@@ -15,6 +16,7 @@ export interface LoginInput {
 
 export interface LoginOutput {
   userId: UserId;
+  role: Role;
   rememberMeCookie: string | null;
 }
 
@@ -56,6 +58,6 @@ export class LoginUseCase extends UseCase<LoginInput, LoginOutput> {
       });
     }
 
-    return ok({ userId: user.id, rememberMeCookie });
+    return ok({ userId: user.id, role: user.role, rememberMeCookie });
   }
 }

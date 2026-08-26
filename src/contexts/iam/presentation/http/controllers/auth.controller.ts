@@ -2,7 +2,7 @@ import { Controller, Get, Post, Query, Body, Req, Res, UseGuards } from '@nestjs
 import { RegisterUseCase } from '@contexts/iam/application/commands/register.use-case';
 import { VerifyEmailUseCase } from '@contexts/iam/application/commands/verify-email.use-case';
 import { ResendVerificationUseCase } from '@contexts/iam/application/commands/resend-verification.use-case';
-import { LoginUseCase } from '@contexts/iam/application/commands/login.use-case';
+import { LoginUseCase, type LoginOutput } from '@contexts/iam/application/commands/login.use-case';
 import { LogoutUseCase } from '@contexts/iam/application/commands/logout.use-case';
 import { ForgotPasswordUseCase } from '@contexts/iam/application/commands/forgot-password.use-case';
 import { ResetPasswordUseCase } from '@contexts/iam/application/commands/reset-password.use-case';
@@ -29,6 +29,7 @@ export interface AuthRequest {
   flash: (type: string, msg: string) => void;
   session: {
     userId?: string;
+    role?: LoginOutput['role'];
     flash?: unknown[];
     regenerate: (cb: () => void) => void;
     destroy: (cb: () => void) => void;
@@ -130,7 +131,7 @@ export class AuthController {
       });
       return;
     }
-    this.establishSession(req, res, result.value.userId, result.value.rememberMeCookie);
+    this.establishSession(req, res, result.value.userId, result.value.role, result.value.rememberMeCookie);
     req.flash('success', 'Welcome back.');
     res.redirect(302, '/profile');
   }
@@ -254,9 +255,10 @@ export class AuthController {
   }
 
   /** Shared post-login session establishment — also the OAuth forward-compat seam (spec §1.4). */
-  private establishSession(req: AuthRequest, res: AuthResponse, userId: string, rememberMeCookie: string | null): void {
+  private establishSession(req: AuthRequest, res: AuthResponse, userId: string, role: LoginOutput['role'], rememberMeCookie: string | null): void {
     req.session.regenerate(() => {
       req.session.userId = userId;
+      req.session.role = role;
       if (rememberMeCookie) res.cookie(RM_COOKIE, rememberMeCookie, RM_OPTS);
     });
   }

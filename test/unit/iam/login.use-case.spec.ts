@@ -3,6 +3,7 @@ import { PasswordHasherService } from '@contexts/iam/application/services/passwo
 import { RememberMeTokenService } from '@contexts/iam/application/services/remember-me-token.service';
 import { User } from '@contexts/iam/domain/user/user.aggregate';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
+import type { Role } from '@contexts/iam/domain/authorization/role';
 import {
   email,
   name,
@@ -25,11 +26,11 @@ function makeLogin() {
   return { useCase, users, sessions, uow, rememberMe };
 }
 
-async function seedVerifiedUser(users: InMemoryUserRepository, emailStr = 'a@b.com', pw = 'pw') {
+async function seedVerifiedUser(users: InMemoryUserRepository, emailStr = 'a@b.com', pw = 'pw', role: Role = 'READER') {
   const user = User.register({
     email: email(emailStr),
     password: HashedPassword.fromHash(`hashed:${pw}`),
-    role: 'READER',
+    role,
     displayName: name('Ada'),
   });
   user.verifyEmail();
@@ -110,5 +111,14 @@ describe('LoginUseCase', () => {
     await users.save(user);
     const result = await useCase.execute({ email: 'a@b.com', password: 'pw', rememberMe: false, now: NOW });
     expect(result.ok).toBe(false);
+  });
+
+  it('returns the user role in the output', async () => {
+    const { useCase, users } = makeLogin();
+    await seedVerifiedUser(users, 'a@b.com', 'pw', 'AUTHOR');
+    const result = await useCase.execute({ email: 'a@b.com', password: 'pw', rememberMe: false, now: NOW });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.role).toBe('AUTHOR');
   });
 });

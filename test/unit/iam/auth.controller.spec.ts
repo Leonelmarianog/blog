@@ -12,6 +12,7 @@ import { DomainError } from '@kernel/domain';
 
 interface MockSession {
   userId?: string;
+  role?: string;
   flash: unknown[];
   regenerate?: (cb: () => void) => void;
   destroy?: (cb: () => void) => void;
@@ -137,7 +138,7 @@ describe('AuthController', () => {
   });
 
   it('POST /login establishes session and redirects to /profile', async () => {
-    const login = mockUseCase(ok({ userId: 'u1', rememberMeCookie: 's.t' })) as unknown as LoginUseCase;
+    const login = mockUseCase(ok({ userId: 'u1', role: 'AUTHOR', rememberMeCookie: 's.t' })) as unknown as LoginUseCase;
     const c = new AuthController(
       {} as unknown as RegisterUseCase,
       {} as unknown as VerifyEmailUseCase,
@@ -150,7 +151,7 @@ describe('AuthController', () => {
     );
     const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: true });
     // emulate regenerate: the controller's establishSession calls
-    // req.session.regenerate(cb) where cb sets userId + optional cookie.
+    // req.session.regenerate(cb) where cb sets userId + role + optional cookie.
     req.session.regenerate = (cb: () => void): void => {
       req.session.userId = undefined;
       cb();
@@ -164,6 +165,34 @@ describe('AuthController', () => {
     expect(res.redirected).toBe('/profile');
     expect(res.cookieSet).not.toBeNull();
     expect(req.session.userId).toBe('u1');
+    expect(req.session.role).toBe('AUTHOR');
+  });
+
+  it('doLogin writes userId and role into the session', async () => {
+    const login = mockUseCase(ok({ userId: 'u1', role: 'AUTHOR', rememberMeCookie: null })) as unknown as LoginUseCase;
+    const c = new AuthController(
+      {} as unknown as RegisterUseCase,
+      {} as unknown as VerifyEmailUseCase,
+      {} as unknown as ResendVerificationUseCase,
+      login,
+      {} as unknown as LogoutUseCase,
+      {} as unknown as ForgotPasswordUseCase,
+      {} as unknown as ResetPasswordUseCase,
+      {} as unknown as GetCurrentUserUseCase,
+    );
+    const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: false });
+    req.session.regenerate = (cb: () => void): void => {
+      cb();
+    };
+    const res = mkRes();
+    await c.doLogin(
+      { email: 'a@b.com', password: 'pw', rememberMe: false },
+      req as unknown as AuthRequest,
+      res as unknown as AuthResponse,
+    );
+    expect(req.session.userId).toBe('u1');
+    expect(req.session.role).toBe('AUTHOR');
+    expect(res.cookieSet).toBeNull();
   });
 
   it('POST /logout destroys session and clears cookies, redirects to /', async () => {
