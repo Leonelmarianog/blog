@@ -9,7 +9,10 @@
       "@kernel/*": ["src/shared-kernel/*"],
       "@contexts/*": ["src/contexts/*"],
       "@infra/*": ["src/infrastructure/*"],
-      "@bootstrap/*": ["src/bootstrap/*"]
+      "@bootstrap/*": ["src/bootstrap/*"],
+      // @casl/ability@7 ships types only via package `exports`; moduleResolution:node
+      // doesn't read it — map the bare import to its .d.ts (compile-time only).
+      "@casl/ability": ["node_modules/@casl/ability/dist/types/index.d.ts"]
     },
     "strict": true,
     "esModuleInterop": true,
