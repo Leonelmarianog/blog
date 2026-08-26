@@ -4,11 +4,13 @@ import { PrismaTokenRepository } from '@infra/persistence/repositories/token.rep
 import { PrismaService } from '@infra/persistence/prisma/prisma.service';
 import { User } from '@contexts/iam/domain/user/user.aggregate';
 import { Email } from '@contexts/iam/domain/user/email.vo';
+import { DisplayName } from '@contexts/iam/domain/user/display-name.vo';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import { Identifier } from '@kernel/domain';
 import type { UserId } from '@contexts/iam/domain/user/user.types';
 
 function okEmail(v: string): Email { const r = Email.create(v); if (!r.ok) throw new Error('x'); return r.value; }
+function okName(v: string): DisplayName { const r = DisplayName.create(v); if (!r.ok) throw new Error('x'); return r.value; }
 
 type Row = Record<string, unknown>;
 type Where = Record<string, unknown>;
@@ -83,7 +85,7 @@ describe('PrismaUserRepository', () => {
   it('saves and finds a user by email, using the tx client when provided', async () => {
     const client = stubClient();
     const repo = new PrismaUserRepository(client);
-    const user = User.register({ email: okEmail('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER' });
+    const user = User.register({ email: okEmail('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER', displayName: okName('Ada') });
     await repo.save(user);
     expect(client.user.create).toHaveBeenCalledWith({ data: expect.objectContaining({ id: user.id }) });
 
@@ -95,7 +97,7 @@ describe('PrismaUserRepository', () => {
   it('updates a user and reads it back by id', async () => {
     const client = stubClient();
     const repo = new PrismaUserRepository(client);
-    const user = User.register({ email: okEmail('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER' });
+    const user = User.register({ email: okEmail('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER', displayName: okName('Ada') });
     await repo.save(user);
     user.verifyEmail();
     await repo.update(user);

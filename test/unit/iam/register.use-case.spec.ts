@@ -6,6 +6,7 @@ import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import { UserRegistered } from '@contexts/iam/domain/events/user-events';
 import {
   email,
+  name,
   InMemoryUserRepository,
   InMemoryTokenRepository,
   FakeQueueProducer,
@@ -41,6 +42,7 @@ describe('RegisterUseCase', () => {
     expect(user?.role).toBe('READER');
     expect(user?.email.value).toBe('a@b.com'); // normalized
     expect(user?.emailVerified).toBe(false);
+    expect(user?.displayName.value).toBe('a'); // local-part of a@b.com
     expect(user?.password.hash).toBe('hashed:pw'); // hashed via FakePasswordHasher
 
     expect(queue.verificationEmails).toHaveLength(1);
@@ -71,6 +73,7 @@ describe('RegisterUseCase', () => {
       email: email('a@b.com'),
       password: HashedPassword.fromHash('h'),
       role: 'READER',
+      displayName: name('Ada'),
     });
     await users.save(existing);
 

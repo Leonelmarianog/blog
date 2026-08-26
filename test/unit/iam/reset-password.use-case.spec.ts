@@ -7,6 +7,7 @@ import { PasswordReset } from '@contexts/iam/domain/events/user-events';
 import { Session } from '@contexts/iam/domain/session/session.entity';
 import {
   email,
+  name,
   InMemoryUserRepository,
   InMemoryTokenRepository,
   InMemorySessionRepository,
@@ -30,6 +31,7 @@ async function makeReset() {
     email: email('a@b.com'),
     password: HashedPassword.fromHash('hashed:old'),
     role: 'READER',
+    displayName: name('Ada'),
   });
   user.verifyEmail();
   await users.save(user);
@@ -80,7 +82,7 @@ describe('ResetPasswordUseCase', () => {
     const passwordHasher = new PasswordHasherService(new FakePasswordHasher());
     const tokenHasher = new FakeTokenHasher();
     const tokenService = new TokenService(tokenHasher);
-    const user = User.register({ email: email('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER' });
+    const user = User.register({ email: email('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER', displayName: name('Ada') });
     user.verifyEmail();
     await users.save(user);
     const past = new Date('2025-12-01T00:00:00Z');

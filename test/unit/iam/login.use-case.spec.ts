@@ -5,6 +5,7 @@ import { User } from '@contexts/iam/domain/user/user.aggregate';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import {
   email,
+  name,
   InMemoryUserRepository,
   InMemorySessionRepository,
   FakeUnitOfWork,
@@ -29,6 +30,7 @@ async function seedVerifiedUser(users: InMemoryUserRepository, emailStr = 'a@b.c
     email: email(emailStr),
     password: HashedPassword.fromHash(`hashed:${pw}`),
     role: 'READER',
+    displayName: name('Ada'),
   });
   user.verifyEmail();
   await users.save(user);
@@ -87,6 +89,7 @@ describe('LoginUseCase', () => {
       email: email('a@b.com'),
       password: HashedPassword.fromHash('hashed:pw'),
       role: 'READER',
+      displayName: name('Ada'),
     }); // unverified
     await users.save(user);
     const result = await useCase.execute({ email: 'a@b.com', password: 'pw', rememberMe: false, now: NOW });
@@ -102,6 +105,7 @@ describe('LoginUseCase', () => {
       role: 'READER',
       emailVerified: true,
       status: 'SUSPENDED',
+      displayName: name('Ada'),
     });
     await users.save(user);
     const result = await useCase.execute({ email: 'a@b.com', password: 'pw', rememberMe: false, now: NOW });

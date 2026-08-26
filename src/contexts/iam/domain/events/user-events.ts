@@ -18,3 +18,27 @@ export class PasswordReset extends DomainEvent {
     super(userId);
   }
 }
+
+export class UserRoleChanged extends DomainEvent {
+  constructor(userId: UserId) {
+    super(userId);
+  }
+}
+
+export class UserSuspended extends DomainEvent {
+  constructor(userId: UserId) {
+    super(userId);
+  }
+}
+
+export class UserUnsuspended extends DomainEvent {
+  constructor(userId: UserId) {
+    super(userId);
+  }
+}
+
+export class UserProfileUpdated extends DomainEvent {
+  constructor(userId: UserId) {
+    super(userId);
+  }
+}

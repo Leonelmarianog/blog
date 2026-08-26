@@ -5,6 +5,7 @@ import { User } from '@contexts/iam/domain/user/user.aggregate';
 import { Session } from '@contexts/iam/domain/session/session.entity';
 import { Token } from '@contexts/iam/domain/token/token.entity';
 import { Email } from '@contexts/iam/domain/user/email.vo';
+import { DisplayName } from '@contexts/iam/domain/user/display-name.vo';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import { Identifier } from '@kernel/domain';
 import type { Prisma } from '@infra/persistence/prisma/client';
@@ -17,12 +18,19 @@ function okEmail(v: string): Email {
   return r.value;
 }
 
+function okName(v: string): DisplayName {
+  const r = DisplayName.create(v);
+  if (!r.ok) throw new Error('bad display name');
+  return r.value;
+}
+
 describe('UserMapper', () => {
   it('round-trips a User through persistence', () => {
     const user = User.register({
       email: okEmail('a@b.com'),
       password: HashedPassword.fromHash('hashed:pw'),
       role: 'READER',
+      displayName: okName('Ada'),
     });
     const row = UserMapper.toPersistence(user);
     expect(row.email).toBe('a@b.com');
@@ -43,7 +51,7 @@ describe('UserMapper', () => {
     expect(() =>
       UserMapper.toDomain({
         id: 'u1', email: 'not-an-email', passwordHash: 'x', role: 'READER',
-        emailVerified: true, status: 'ACTIVE', createdAt: NOW, updatedAt: NOW,
+        emailVerified: true, status: 'ACTIVE', displayName: 'Ada', createdAt: NOW, updatedAt: NOW,
       }),
     ).toThrow();
   });

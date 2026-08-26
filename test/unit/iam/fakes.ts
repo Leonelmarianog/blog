@@ -2,6 +2,7 @@ import type { DomainEvent } from '@kernel/domain';
 import type { UnitOfWorkPort, EventCollector } from '@kernel/application';
 import type { User } from '@contexts/iam/domain/user/user.aggregate';
 import { Email } from '@contexts/iam/domain/user/email.vo';
+import { DisplayName } from '@contexts/iam/domain/user/display-name.vo';
 import type { UserId } from '@contexts/iam/domain/user/user.types';
 import type { Session } from '@contexts/iam/domain/session/session.entity';
 import type { SessionId } from '@contexts/iam/domain/session/session.types';
@@ -27,6 +28,17 @@ import type {
 export function email(value: string): Email {
   const r = Email.create(value);
   if (!r.ok) throw new Error(`fixture: invalid email "${value}"`);
+  return r.value;
+}
+
+/**
+ * Test-data helper: build a known-valid `DisplayName` without discriminant-
+ * narrowing boilerplate (mirrors `email`). Reused by every use-case test that
+ * seeds a `User` with a display name.
+ */
+export function name(value: string): DisplayName {
+  const r = DisplayName.create(value);
+  if (!r.ok) throw new Error(`fixture: invalid display name "${value}"`);
   return r.value;
 }
 
