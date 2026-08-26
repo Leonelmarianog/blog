@@ -49,6 +49,12 @@ export class InMemoryUserRepository implements UserRepositoryPort {
   async findByEmail(email: Email): Promise<User | null> { return this.byEmail.get(email.value) ?? null; }
   async save(user: User): Promise<void> { this.store(user); }
   async update(user: User): Promise<void> { this.store(user); }
+  async findMany(input: { page: number; pageSize: number }): Promise<{ items: User[]; total: number }> {
+    const all = [...this.byId.values()];
+    const start = (input.page - 1) * input.pageSize;
+    return { items: all.slice(start, start + input.pageSize), total: all.length };
+  }
+  async count(): Promise<number> { return this.byId.size; }
   private store(user: User): void {
     this.byId.set(user.id, user);
     this.byEmail.set(user.email.value, user);
