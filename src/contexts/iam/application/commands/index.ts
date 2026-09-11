@@ -9,3 +9,4 @@ export * from './rotate-session.use-case';
 export * from './revoke-session.use-case';
 export * from './suspend-user.use-case';
 export * from './unsuspend-user.use-case';
+export * from './change-user-role.use-case';
