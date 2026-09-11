@@ -7,4 +7,3 @@ export * from './forgot-password.use-case';
 export * from './reset-password.use-case';
 export * from './rotate-session.use-case';
 export * from './revoke-session.use-case';
-export * from './list-users.use-case';

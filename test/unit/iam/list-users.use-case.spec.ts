@@ -1,4 +1,4 @@
-import { ListUsersUseCase } from '@contexts/iam/application/commands/list-users.use-case';
+import { ListUsersUseCase } from '@contexts/iam/application/queries/list-users.use-case';
 import { User } from '@contexts/iam/domain/user/user.aggregate';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import { InMemoryUserRepository, email, name } from './fakes';
