@@ -137,7 +137,7 @@ export class AuthController {
       });
       return;
     }
-    this.establishSession(req, res, result.value.userId, result.value.role, result.value.rememberMeCookie);
+    await this.establishSession(req, res, result.value.userId, result.value.role, result.value.rememberMeCookie);
     req.flash('success', 'Welcome back.');
     res.redirect(302, '/profile');
   }
@@ -301,12 +301,21 @@ export class AuthController {
     }
   }
 
-  /** Shared post-login session establishment — also the OAuth forward-compat seam (spec §1.4). */
-  private establishSession(req: AuthRequest, res: AuthResponse, userId: string, role: LoginOutput['role'], rememberMeCookie: string | null): void {
-    req.session.regenerate(() => {
-      req.session.userId = userId;
-      req.session.role = role;
-      if (rememberMeCookie) res.cookie(RM_COOKIE, rememberMeCookie, RM_OPTS);
+  /**
+   * Shared post-login session establishment — also the OAuth forward-compat seam (spec §1.4).
+   * Returns a Promise that resolves after `regenerate`'s callback sets userId/role/cookie, so
+   * the caller's redirect fires only once the new session is populated — express-session then
+   * persists that session on response end. Awaiting this is what makes the session survive the
+   * redirect (Ruling 10 race fix).
+   */
+  private establishSession(req: AuthRequest, res: AuthResponse, userId: string, role: LoginOutput['role'], rememberMeCookie: string | null): Promise<void> {
+    return new Promise((resolve) => {
+      req.session.regenerate(() => {
+        req.session.userId = userId;
+        req.session.role = role;
+        if (rememberMeCookie) res.cookie(RM_COOKIE, rememberMeCookie, RM_OPTS);
+        resolve();
+      });
     });
   }
 }

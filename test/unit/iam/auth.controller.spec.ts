@@ -161,7 +161,7 @@ describe('AuthController', () => {
       {} as unknown as GetCurrentUserUseCase,
       {} as unknown as UpdateProfileUseCase,
     );
-    const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: true });
+    const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: '1' });
     // emulate regenerate: the controller's establishSession calls
     // req.session.regenerate(cb) where cb sets userId + role + optional cookie.
     req.session.regenerate = (cb: () => void): void => {
@@ -170,7 +170,7 @@ describe('AuthController', () => {
     };
     const res = mkRes();
     await c.doLogin(
-      { email: 'a@b.com', password: 'pw', rememberMe: true },
+      { email: 'a@b.com', password: 'pw', rememberMe: '1' },
       req as unknown as AuthRequest,
       res as unknown as AuthResponse,
     );
@@ -193,13 +193,13 @@ describe('AuthController', () => {
       {} as unknown as GetCurrentUserUseCase,
       {} as unknown as UpdateProfileUseCase,
     );
-    const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: false });
+    const req = mkReq({ email: 'a@b.com', password: 'pw' });
     req.session.regenerate = (cb: () => void): void => {
       cb();
     };
     const res = mkRes();
     await c.doLogin(
-      { email: 'a@b.com', password: 'pw', rememberMe: false },
+      { email: 'a@b.com', password: 'pw' },
       req as unknown as AuthRequest,
       res as unknown as AuthResponse,
     );
