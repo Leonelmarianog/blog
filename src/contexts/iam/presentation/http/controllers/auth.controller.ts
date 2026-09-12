@@ -7,6 +7,7 @@ import { LogoutUseCase } from '@contexts/iam/application/commands/logout.use-cas
 import { ForgotPasswordUseCase } from '@contexts/iam/application/commands/forgot-password.use-case';
 import { ResetPasswordUseCase } from '@contexts/iam/application/commands/reset-password.use-case';
 import { GetCurrentUserUseCase, type GetCurrentUserInput } from '@contexts/iam/application/queries/get-current-user.use-case';
+import { UpdateProfileUseCase } from '@contexts/iam/application/commands/update-profile.use-case';
 import { RememberMeTokenService } from '@contexts/iam/application/services/remember-me-token.service';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -14,7 +15,10 @@ import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { ResendVerificationDto } from '../dto/resend-verification.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { SessionGuard } from '../guards/session.guard';
+import { PoliciesGuard } from '../guards/policies.guard';
+import { Policies } from '../decorators/policies.decorator';
 import { FormView } from '@bootstrap/exceptions/form-view.decorator';
 
 /**
@@ -68,6 +72,7 @@ export class AuthController {
     private readonly forgotPassword: ForgotPasswordUseCase,
     private readonly resetPassword: ResetPasswordUseCase,
     private readonly getCurrentUser: GetCurrentUserUseCase,
+    private readonly updateProfile: UpdateProfileUseCase,
   ) {}
 
   @Get('register')
@@ -252,6 +257,47 @@ export class AuthController {
       user: result.value,
       currentNav: '',
     });
+  }
+
+  @Get('profile/edit')
+  @UseGuards(SessionGuard, PoliciesGuard)
+  @Policies('update', 'User')
+  async showEditProfile(@Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
+    const result = await this.getCurrentUser.execute({ userId: req.session.userId as GetCurrentUserInput['userId'] });
+    if (!result.ok) { res.redirect(302, '/login'); return; }
+    res.render('iam/profile-edit', {
+      title: 'Edit profile',
+      csrfToken: res.locals.csrfToken,
+      flash: res.locals.flash,
+      displayName: result.value.displayName,
+      errors: {},
+      currentNav: '',
+    });
+  }
+
+  @Post('profile/edit')
+  @UseGuards(SessionGuard, PoliciesGuard)
+  @Policies('update', 'User')
+  @FormView('iam/profile-edit')
+  async doEditProfile(@Body() dto: UpdateProfileDto, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
+    const result = await this.updateProfile.execute({
+      userId: req.session.userId as GetCurrentUserInput['userId'],
+      displayName: dto.displayName,
+      ...(dto.newPassword ? { newPassword: dto.newPassword } : {}),
+    });
+    if (result.ok) {
+      req.flash('success', 'Profile updated.');
+      res.redirect(302, '/profile');
+    } else {
+      res.render('iam/profile-edit', {
+        title: 'Edit profile',
+        csrfToken: res.locals.csrfToken,
+        flash: res.locals.flash,
+        displayName: dto.displayName,
+        errors: { form: result.error.message },
+        currentNav: '',
+      });
+    }
   }
 
   /** Shared post-login session establishment — also the OAuth forward-compat seam (spec §1.4). */

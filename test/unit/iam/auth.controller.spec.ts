@@ -7,6 +7,7 @@ import type { LogoutUseCase } from '@contexts/iam/application/commands/logout.us
 import type { ForgotPasswordUseCase } from '@contexts/iam/application/commands/forgot-password.use-case';
 import type { ResetPasswordUseCase } from '@contexts/iam/application/commands/reset-password.use-case';
 import type { GetCurrentUserUseCase } from '@contexts/iam/application/queries/get-current-user.use-case';
+import type { UpdateProfileUseCase } from '@contexts/iam/application/commands/update-profile.use-case';
 import { ok, fail, type Result } from '@kernel/application';
 import { DomainError } from '@kernel/domain';
 
@@ -101,6 +102,7 @@ describe('AuthController', () => {
       {} as unknown as ForgotPasswordUseCase,
       {} as unknown as ResetPasswordUseCase,
       {} as unknown as GetCurrentUserUseCase,
+      {} as unknown as UpdateProfileUseCase,
     );
     const req = mkReq({ email: 'a@b.com', password: 'pw' });
     const res = mkRes();
@@ -125,6 +127,7 @@ describe('AuthController', () => {
       {} as unknown as ForgotPasswordUseCase,
       {} as unknown as ResetPasswordUseCase,
       {} as unknown as GetCurrentUserUseCase,
+      {} as unknown as UpdateProfileUseCase,
     );
     const req = mkReq({ email: 'a@b.com', password: 'pw' });
     const res = mkRes();
@@ -148,6 +151,7 @@ describe('AuthController', () => {
       {} as unknown as ForgotPasswordUseCase,
       {} as unknown as ResetPasswordUseCase,
       {} as unknown as GetCurrentUserUseCase,
+      {} as unknown as UpdateProfileUseCase,
     );
     const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: true });
     // emulate regenerate: the controller's establishSession calls
@@ -179,6 +183,7 @@ describe('AuthController', () => {
       {} as unknown as ForgotPasswordUseCase,
       {} as unknown as ResetPasswordUseCase,
       {} as unknown as GetCurrentUserUseCase,
+      {} as unknown as UpdateProfileUseCase,
     );
     const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: false });
     req.session.regenerate = (cb: () => void): void => {
@@ -206,6 +211,7 @@ describe('AuthController', () => {
       {} as unknown as ForgotPasswordUseCase,
       {} as unknown as ResetPasswordUseCase,
       {} as unknown as GetCurrentUserUseCase,
+      {} as unknown as UpdateProfileUseCase,
     );
     const req = mkReq({}, { userId: 'u1' });
     req.session.destroy = (cb: () => void): void => {
@@ -216,5 +222,52 @@ describe('AuthController', () => {
     await c.doLogout({}, req as unknown as AuthRequest, res as unknown as AuthResponse);
     expect(res.redirected).toBe('/');
     expect(res.clearCookie).toHaveBeenCalled();
+  });
+
+  it('GET /profile/edit renders the edit form with the current display name', async () => {
+    const getCurrentUser = mockUseCase(
+      ok({ id: 'u1', email: 'a@b.com', role: 'READER', emailVerified: true, status: 'ACTIVE', displayName: 'Ada' }),
+    ) as unknown as GetCurrentUserUseCase;
+    const c = new AuthController(
+      {} as unknown as RegisterUseCase,
+      {} as unknown as VerifyEmailUseCase,
+      {} as unknown as ResendVerificationUseCase,
+      {} as unknown as LoginUseCase,
+      {} as unknown as LogoutUseCase,
+      {} as unknown as ForgotPasswordUseCase,
+      {} as unknown as ResetPasswordUseCase,
+      getCurrentUser,
+      {} as unknown as UpdateProfileUseCase,
+    );
+    const req = mkReq({}, { userId: 'u1' });
+    req.session.role = 'READER';
+    const res = mkRes();
+    await c.showEditProfile(req as unknown as AuthRequest, res as unknown as AuthResponse);
+    expect(res.render).toHaveBeenCalledWith('iam/profile-edit', expect.objectContaining({ displayName: 'Ada' }));
+  });
+
+  it('POST /profile/edit updates the profile and redirects to /profile', async () => {
+    const updateProfile = mockUseCase(ok({ userId: 'u1' })) as unknown as UpdateProfileUseCase;
+    const c = new AuthController(
+      {} as unknown as RegisterUseCase,
+      {} as unknown as VerifyEmailUseCase,
+      {} as unknown as ResendVerificationUseCase,
+      {} as unknown as LoginUseCase,
+      {} as unknown as LogoutUseCase,
+      {} as unknown as ForgotPasswordUseCase,
+      {} as unknown as ResetPasswordUseCase,
+      {} as unknown as GetCurrentUserUseCase,
+      updateProfile,
+    );
+    const req = mkReq({ displayName: 'Grace' }, { userId: 'u1' });
+    req.session.role = 'READER';
+    const res = mkRes();
+    await c.doEditProfile(
+      { displayName: 'Grace' },
+      req as unknown as AuthRequest,
+      res as unknown as AuthResponse,
+    );
+    expect(updateProfile.execute).toHaveBeenCalledWith(expect.objectContaining({ displayName: 'Grace' }));
+    expect(res.redirect).toHaveBeenCalledWith(302, '/profile');
   });
 });

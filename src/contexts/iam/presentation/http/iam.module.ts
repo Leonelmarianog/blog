@@ -25,8 +25,13 @@ import { ResetPasswordUseCase } from '@contexts/iam/application/commands/reset-p
 import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-session.use-case';
 import { RevokeSessionUseCase } from '@contexts/iam/application/commands/revoke-session.use-case';
 import { GetCurrentUserUseCase } from '@contexts/iam/application/queries/get-current-user.use-case';
+import { UpdateProfileUseCase } from '@contexts/iam/application/commands/update-profile.use-case';
+import { AbilityService } from '@contexts/iam/application/authorization/ability.service';
+import { UserSubjectResolver } from '@contexts/iam/application/authorization/user-subject-resolver';
+import { SUBJECT_RESOLVERS, type SubjectResolver } from '@contexts/iam/application/authorization/subject-resolver.port';
 import { AuthController } from './controllers/auth.controller';
 import { SessionGuard } from './guards/session.guard';
+import { PoliciesGuard } from './guards/policies.guard';
 
 // Each `useFactory` uses the `ConstructorParameters<typeof X>` spread idiom so the factory
 // param types are inferred from the constructor — no explicit `any` tokens (which
@@ -45,6 +50,7 @@ import { SessionGuard } from './guards/session.guard';
 //   RotateSessionUseCase(sessions, tokenHasher, rememberMe, uow)
 //   RevokeSessionUseCase(sessions, uow)
 //   GetCurrentUserUseCase(users)
+//   UpdateProfileUseCase(users, passwordHasher, uow)
 @Module({
   controllers: [AuthController],
   providers: [
@@ -59,6 +65,14 @@ import { SessionGuard } from './guards/session.guard';
     // shadows the global one cleanly, and this redundancy is intentional.
     { provide: QUEUE_PRODUCER, useClass: LoggingQueueProducer },
     SessionGuard,
+    PoliciesGuard,
+    AbilityService,
+    UserSubjectResolver,
+    {
+      provide: SUBJECT_RESOLVERS,
+      useFactory: (resolver: UserSubjectResolver): SubjectResolver[] => [resolver],
+      inject: [UserSubjectResolver],
+    },
     {
       provide: PasswordHasherService,
       useFactory: (...args: ConstructorParameters<typeof PasswordHasherService>) => new PasswordHasherService(...args),
@@ -123,6 +137,11 @@ import { SessionGuard } from './guards/session.guard';
       provide: GetCurrentUserUseCase,
       useFactory: (...args: ConstructorParameters<typeof GetCurrentUserUseCase>) => new GetCurrentUserUseCase(...args),
       inject: [USER_REPOSITORY],
+    },
+    {
+      provide: UpdateProfileUseCase,
+      useFactory: (...args: ConstructorParameters<typeof UpdateProfileUseCase>) => new UpdateProfileUseCase(...args),
+      inject: [USER_REPOSITORY, PasswordHasherService, UNIT_OF_WORK],
     },
   ],
   exports: [
