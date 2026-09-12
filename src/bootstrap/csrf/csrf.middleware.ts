@@ -26,6 +26,10 @@ export class CsrfMiddleware implements NestMiddleware {
       if (typeof presented !== 'string' || presented !== req.session.csrfToken) {
         throw new ForbiddenException('CSRF token mismatch');
       }
+      // Strip the CSRF field so downstream ValidationPipe (forbidNonWhitelisted)
+      // doesn't reject it as an unexpected DTO property — _csrf is infrastructure,
+      // not a form payload field.
+      if (req.body) delete req.body._csrf;
     }
     next();
   }
