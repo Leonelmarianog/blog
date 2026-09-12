@@ -9,7 +9,7 @@ export default [
   ...tseslint.configs.recommended,
   {
     // Node CommonJS config files (e.g. jest.config.js) need Node globals + CommonJS source.
-    files: ['jest.config.js'],
+    files: ['jest.config.js', 'jest.integration.config.js'],
     languageOptions: { sourceType: 'commonjs', globals: globals.node },
   },
   {
