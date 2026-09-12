@@ -45,7 +45,7 @@ export class UserController {
   }
 
   @Post(':id/suspend')
-  @Policies('update', 'User')
+  @Policies('manage', 'User')
   async suspend(@Param('id') _id: string, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
     const result = await this.suspendUser.execute({ targetId: _id as never, now: new Date() });
     if (result.ok) req.flash('success', 'User suspended.');
@@ -54,7 +54,7 @@ export class UserController {
   }
 
   @Post(':id/unsuspend')
-  @Policies('update', 'User')
+  @Policies('manage', 'User')
   async unsuspend(@Param('id') _id: string, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
     const result = await this.unsuspendUser.execute({ targetId: _id as never });
     if (result.ok) req.flash('success', 'User reactivated.');
@@ -63,7 +63,7 @@ export class UserController {
   }
 
   @Post(':id/role')
-  @Policies('update', 'User')
+  @Policies('manage', 'User')
   @FormView('iam/admin/users')
   async changeRole(@Param('id') _id: string, @Body() dto: ChangeRoleDto, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
     const result = await this.changeUserRole.execute({ targetId: _id as never, newRole: dto.role, now: new Date() });
