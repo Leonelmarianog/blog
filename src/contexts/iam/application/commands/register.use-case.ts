@@ -1,6 +1,7 @@
 import { UseCase, ok, fail, type Result, type UnitOfWorkPort } from '@kernel/application';
 import { DomainError } from '@kernel/domain';
 import { Email } from '../../domain/user/email.vo';
+import { DisplayName } from '../../domain/user/display-name.vo';
 import { User } from '../../domain/user/user.aggregate';
 import type { UserId } from '../../domain/user/user.types';
 import type { UserRepositoryPort, TokenRepositoryPort, QueueProducerPort } from '../ports';
@@ -11,6 +12,7 @@ export interface RegisterInput {
   email: string;
   password: string;
   now: Date;
+  displayName?: string;
 }
 
 export interface RegisterOutput {
@@ -37,8 +39,14 @@ export class RegisterUseCase extends UseCase<RegisterInput, RegisterOutput> {
     const existing = await this.users.findByEmail(email);
     if (existing) return fail(new DomainError('Email already registered'));
 
+    const localPart = email.value.split('@')[0] || 'User';
+    const nameInput = input.displayName ?? localPart;
+    const nameResult = DisplayName.create(nameInput);
+    if (!nameResult.ok) return fail(nameResult.error);
+    const displayName = nameResult.value;
+
     const password = await this.passwordHasher.hashPassword(input.password);
-    const user = User.register({ email, password, role: 'READER' });
+    const user = User.register({ email, password, role: 'READER', displayName });
     const { token, selector, verifier } = this.tokenService.issue('VERIFICATION', user.id, input.now);
 
     this.uow.collect(user);

@@ -1,7 +1,7 @@
 import { GetCurrentUserUseCase } from '@contexts/iam/application/queries/get-current-user.use-case';
 import { User } from '@contexts/iam/domain/user/user.aggregate';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
-import { email, InMemoryUserRepository } from './fakes';
+import { email, name, InMemoryUserRepository } from './fakes';
 
 describe('GetCurrentUserUseCase', () => {
   it('returns a flattened read DTO for an existing user', async () => {
@@ -10,6 +10,7 @@ describe('GetCurrentUserUseCase', () => {
       email: email('a@b.com'),
       password: HashedPassword.fromHash('h'),
       role: 'AUTHOR',
+      displayName: name('Ada'),
     });
     user.verifyEmail();
     await users.save(user);
@@ -24,6 +25,7 @@ describe('GetCurrentUserUseCase', () => {
       role: 'AUTHOR',
       emailVerified: true,
       status: 'ACTIVE',
+      displayName: 'Ada',
     });
   });
 

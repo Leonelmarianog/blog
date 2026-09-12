@@ -1,3 +1,4 @@
+import 'dotenv/config'; // Load .env into process.env before ConfigModule parses it
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import express from 'express';
@@ -62,7 +63,13 @@ async function bootstrap(): Promise<void> {
   );
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: false }));
-  app.useGlobalFilters(new ValidationExceptionFilter(), new GlobalExceptionFilter());
+  // Nest reverses the global-filters array before selection (router-exception-filters.js
+  // `setCustomFilters(filters.reverse())`) and selects the first match, where a catch-all
+  // `@Catch()` matches everything. So the catch-all MUST be registered FIRST so that, after
+  // the internal reverse, the specific ValidationExceptionFilter is checked before the
+  // GlobalExceptionFilter — otherwise the catch-all swallows BadRequestExceptions and the
+  // @FormView re-render never fires. Register specific filters AFTER the catch-all.
+  app.useGlobalFilters(new GlobalExceptionFilter(), new ValidationExceptionFilter());
   app.useGlobalInterceptors(new FormViewInterceptor(app.get(Reflector)));
 
   await app.listen(config.get('PORT'));

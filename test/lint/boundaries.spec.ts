@@ -144,4 +144,16 @@ describe('boundary rules', () => {
     const messages = lintFixture('src/contexts/iam/presentation/http/controllers/foo.ts', code);
     expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
   });
+
+  it('allows context-presentation (guard) -> context-application (AbilityService)', () => {
+    const code = `import { AbilityService } from '@contexts/iam/application/authorization/ability.service';\nexport class G { constructor(a: AbilityService) {} }`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/guards/g.ts', code);
+    expect(messages).toHaveLength(0);
+  });
+
+  it('disallows context-presentation (guard) -> context-domain (aggregate) directly', () => {
+    const code = `import { User } from '@contexts/iam/domain/user/user.aggregate';\nexport const u = () => User;`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/guards/g.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+  });
 });

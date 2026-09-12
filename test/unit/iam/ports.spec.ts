@@ -9,6 +9,7 @@ import {
   FakeTokenHasher,
   FakeQueueProducer,
   FakeUnitOfWork,
+  name,
 } from './fakes';
 import type {
   UserRepositoryPort,
@@ -34,7 +35,7 @@ describe('IAM ports + fakes', () => {
     const tokenHasher: TokenHasherPort = new FakeTokenHasher();
     const queue: QueueProducerPort = new FakeQueueProducer();
 
-    const user = User.register({ email: email('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER' });
+    const user = User.register({ email: email('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER', displayName: name('Ada') });
     await users.save(user);
     expect((await users.findByEmail(email('a@b.com')))?.id).toBe(user.id);
     expect((await users.findById(user.id))?.email.value).toBe('a@b.com');
@@ -48,7 +49,7 @@ describe('IAM ports + fakes', () => {
 
   it('FakeUnitOfWork dispatches collected events on run and clears them', async () => {
     const uow = new FakeUnitOfWork();
-    const user = User.register({ email: email('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER' });
+    const user = User.register({ email: email('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER', displayName: name('Ada') });
     uow.collect(user);
     const result = await uow.run(async () => 'ok');
     expect(result).toBe('ok');

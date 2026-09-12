@@ -2,6 +2,7 @@ import type { DomainEvent } from '@kernel/domain';
 import type { UnitOfWorkPort, EventCollector } from '@kernel/application';
 import type { User } from '@contexts/iam/domain/user/user.aggregate';
 import { Email } from '@contexts/iam/domain/user/email.vo';
+import { DisplayName } from '@contexts/iam/domain/user/display-name.vo';
 import type { UserId } from '@contexts/iam/domain/user/user.types';
 import type { Session } from '@contexts/iam/domain/session/session.entity';
 import type { SessionId } from '@contexts/iam/domain/session/session.types';
@@ -30,6 +31,17 @@ export function email(value: string): Email {
   return r.value;
 }
 
+/**
+ * Test-data helper: build a known-valid `DisplayName` without discriminant-
+ * narrowing boilerplate (mirrors `email`). Reused by every use-case test that
+ * seeds a `User` with a display name.
+ */
+export function name(value: string): DisplayName {
+  const r = DisplayName.create(value);
+  if (!r.ok) throw new Error(`fixture: invalid display name "${value}"`);
+  return r.value;
+}
+
 export class InMemoryUserRepository implements UserRepositoryPort {
   private byId = new Map<string, User>();
   private byEmail = new Map<string, User>();
@@ -37,6 +49,12 @@ export class InMemoryUserRepository implements UserRepositoryPort {
   async findByEmail(email: Email): Promise<User | null> { return this.byEmail.get(email.value) ?? null; }
   async save(user: User): Promise<void> { this.store(user); }
   async update(user: User): Promise<void> { this.store(user); }
+  async findMany(input: { page: number; pageSize: number }): Promise<{ items: User[]; total: number }> {
+    const all = [...this.byId.values()];
+    const start = (input.page - 1) * input.pageSize;
+    return { items: all.slice(start, start + input.pageSize), total: all.length };
+  }
+  async count(): Promise<number> { return this.byId.size; }
   private store(user: User): void {
     this.byId.set(user.id, user);
     this.byEmail.set(user.email.value, user);

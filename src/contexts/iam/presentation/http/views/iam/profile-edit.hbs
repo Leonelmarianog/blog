@@ -1,0 +1,10 @@
+<h1>Edit profile</h1>
+{{> flash}}
+<form method="post" action="/profile/edit">
+  {{> csrf}}
+  <label>Display name <input type="text" name="displayName" value="{{displayName}}"></label>
+  {{#if errors.displayName}}<span class="error">{{errors.displayName}}</span>{{/if}}
+  <label>New password (optional) <input type="password" name="newPassword" autocomplete="new-password"></label>
+  {{#if errors.form}}<span class="error">{{errors.form}}</span>{{/if}}
+  <button type="submit">Save</button>
+</form>

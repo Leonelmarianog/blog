@@ -15,6 +15,7 @@ export interface GetCurrentUserOutput {
   role: Role;
   emailVerified: boolean;
   status: UserStatus;
+  displayName: string;
 }
 
 export class GetCurrentUserUseCase extends UseCase<GetCurrentUserInput, GetCurrentUserOutput> {
@@ -32,6 +33,7 @@ export class GetCurrentUserUseCase extends UseCase<GetCurrentUserInput, GetCurre
       role: user.role,
       emailVerified: user.emailVerified,
       status: user.status,
+      displayName: user.displayName.value,
     });
   }
 }

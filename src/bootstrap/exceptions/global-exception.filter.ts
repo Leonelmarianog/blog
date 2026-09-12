@@ -15,7 +15,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof NotFoundException) {
       res.status(404).render('errors/404', { title: 'Not Found' });
     } else if (exception instanceof ForbiddenException) {
-      res.status(403).render('errors/400', { title: 'Forbidden', message: exception.message });
+      res.status(403).render('errors/403', { title: 'Forbidden', message: exception.message });
     } else if (exception instanceof BadRequestException) {
       res.status(400).render('errors/400', { title: 'Bad Request', message: exception.message });
     } else {

@@ -4,6 +4,7 @@ import { User } from '@contexts/iam/domain/user/user.aggregate';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import {
   email,
+  name,
   InMemoryUserRepository,
   InMemoryTokenRepository,
   FakeQueueProducer,
@@ -28,6 +29,7 @@ async function seedUnverified(users: InMemoryUserRepository) {
     email: email('a@b.com'),
     password: HashedPassword.fromHash('h'),
     role: 'READER',
+    displayName: name('Ada'),
   });
   await users.save(user);
   return user;

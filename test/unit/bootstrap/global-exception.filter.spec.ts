@@ -20,11 +20,11 @@ describe('GlobalExceptionFilter', () => {
     expect(res.render).toHaveBeenCalledWith('errors/404', expect.any(Object));
   });
 
-  it('maps ForbiddenException to errors/400 at 403', () => {
+  it('maps ForbiddenException to errors/403 at 403', () => {
     const res: MockRes = { status: jest.fn().mockReturnThis(), render: jest.fn() };
     new GlobalExceptionFilter().catch(new ForbiddenException(), host(res));
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.render).toHaveBeenCalledWith('errors/400', expect.any(Object));
+    expect(res.render).toHaveBeenCalledWith('errors/403', expect.any(Object));
   });
 
   it('maps BadRequestException to errors/400 at 400', () => {

@@ -31,4 +31,21 @@ export class PrismaUserRepository implements UserRepositoryPort<Prisma.Transacti
       data: UserMapper.toPersistence(user),
     });
   }
+
+  async findMany(input: { page: number; pageSize: number }, tx?: Prisma.TransactionClient): Promise<{ items: User[]; total: number }> {
+    const client = tx ?? this.prisma;
+    const [rows, total] = await Promise.all([
+      client.user.findMany({
+        skip: (input.page - 1) * input.pageSize,
+        take: input.pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+      client.user.count(),
+    ]);
+    return { items: rows.map((r) => UserMapper.toDomain(r)), total };
+  }
+
+  async count(tx?: Prisma.TransactionClient): Promise<number> {
+    return (tx ?? this.prisma).user.count();
+  }
 }

@@ -5,6 +5,7 @@ import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import { EmailVerified } from '@contexts/iam/domain/events/user-events';
 import {
   email,
+  name,
   InMemoryUserRepository,
   InMemoryTokenRepository,
   FakeUnitOfWork,
@@ -24,6 +25,7 @@ async function seedVerifiedScenario() {
     email: email('a@b.com'),
     password: HashedPassword.fromHash('h'),
     role: 'READER',
+    displayName: name('Ada'),
   });
   await users.save(user);
   const { token, selector, verifier } = tokenService.issue('VERIFICATION', user.id, NOW);
@@ -66,6 +68,7 @@ describe('VerifyEmailUseCase', () => {
       email: email('a@b.com'),
       password: HashedPassword.fromHash('h'),
       role: 'READER',
+      displayName: name('Ada'),
     });
     await users.save(user);
     const past = new Date('2025-12-01T00:00:00Z');

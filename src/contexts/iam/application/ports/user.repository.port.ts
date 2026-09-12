@@ -9,4 +9,6 @@ export interface UserRepositoryPort<Tx = unknown> {
   findByEmail(email: Email, tx?: Tx): Promise<User | null>;
   save(user: User, tx?: Tx): Promise<void>;
   update(user: User, tx?: Tx): Promise<void>;
+  findMany(input: { page: number; pageSize: number }, tx?: Tx): Promise<{ items: User[]; total: number }>;
+  count(tx?: Tx): Promise<number>;
 }
