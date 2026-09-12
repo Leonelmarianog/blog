@@ -15,7 +15,7 @@ describe('ChangeUserRoleUseCase', () => {
     const user = User.register({ email: email('a@b.com'), password: HashedPassword.fromHash('h'), role: 'READER', displayName: name('Ada') });
     await users.save(user);
 
-    // seed a session for the target — must be gone after the use-case runs
+    // spy on session invalidation — deleteByUserId must be called with the target's id
     const spy = jest.spyOn(sessions, 'deleteByUserId');
 
     const useCase = new ChangeUserRoleUseCase(users, sessions, uow);
