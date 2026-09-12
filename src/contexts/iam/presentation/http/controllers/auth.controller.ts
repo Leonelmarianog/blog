@@ -47,6 +47,7 @@ export interface AuthRequest {
 export interface AuthResponse {
   locals: { csrfToken: string; flash: unknown[] };
   redirect: (code: number, url: string) => void;
+  status: (code: number) => AuthResponse;
   render: (view: string, locals: Record<string, unknown>) => void;
   cookie: (name: string, value: string, opts: Record<string, unknown>) => void;
   clearCookie: (name: string, opts: Record<string, unknown>) => void;
@@ -94,7 +95,7 @@ export class AuthController {
       req.flash('success', 'Check your email to verify your account.');
       res.redirect(302, '/login');
     } else {
-      res.render('iam/register', {
+      res.status(200).render('iam/register', {
         title: 'Register',
         csrfToken: res.locals.csrfToken,
         flash: res.locals.flash,
@@ -126,7 +127,7 @@ export class AuthController {
       now: new Date(),
     });
     if (!result.ok) {
-      res.render('iam/login', {
+      res.status(200).render('iam/login', {
         title: 'Login',
         csrfToken: res.locals.csrfToken,
         flash: res.locals.flash,
@@ -225,7 +226,7 @@ export class AuthController {
       req.flash('success', 'Your password has been reset.');
       res.redirect(302, '/login');
     } else {
-      res.render('iam/reset-password', {
+      res.status(200).render('iam/reset-password', {
         title: 'Reset password',
         csrfToken: res.locals.csrfToken,
         flash: res.locals.flash,
@@ -289,7 +290,7 @@ export class AuthController {
       req.flash('success', 'Profile updated.');
       res.redirect(302, '/profile');
     } else {
-      res.render('iam/profile-edit', {
+      res.status(200).render('iam/profile-edit', {
         title: 'Edit profile',
         csrfToken: res.locals.csrfToken,
         flash: res.locals.flash,

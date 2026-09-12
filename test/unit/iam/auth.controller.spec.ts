@@ -42,8 +42,10 @@ interface MockRes {
   locals: { csrfToken: string; flash: unknown[] };
   redirected: string;
   rendered: Rendered | null;
+  statused: number | null;
   cookieSet: CookieSet | null;
   redirect: jest.Mock;
+  status: jest.Mock;
   render: jest.Mock;
   cookie: jest.Mock;
   clearCookie: jest.Mock;
@@ -61,9 +63,14 @@ function mkRes(): MockRes {
     locals: { csrfToken: 'csrf', flash: [] },
     redirected: '',
     rendered: null,
+    statused: null,
     cookieSet: null,
     redirect: jest.fn((code: number | string, url?: string) => {
       res.redirected = typeof code === 'string' ? code : (url ?? '');
+    }),
+    status: jest.fn((code: number) => {
+      res.statused = code;
+      return res;
     }),
     render: jest.fn((view: string, locals: Record<string, unknown>) => {
       res.rendered = { view, locals };
@@ -136,6 +143,7 @@ describe('AuthController', () => {
       req as unknown as AuthRequest,
       res as unknown as AuthResponse,
     );
+    expect(res.statused).toBe(200);
     expect(res.rendered?.view).toBe('iam/register');
     expect(res.rendered?.locals.errors).toBeDefined();
   });
