@@ -1,0 +1,33 @@
+<h1>Users</h1>
+{{> flash}}
+<table>
+  <thead>
+    <tr><th>Email</th><th>Display name</th><th>Role</th><th>Status</th><th>Verified</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+    {{#each users}}
+    <tr>
+      <td>{{email}}</td>
+      <td>{{displayName}}</td>
+      <td>{{role}}</td>
+      <td>{{status}}</td>
+      <td>{{#if emailVerified}}yes{{else}}no{{/if}}</td>
+      <td>
+        {{#if (eq status 'SUSPENDED')}}
+        <form method="post" action="/admin/users/{{id}}/unsuspend">{{> csrf}}<button type="submit">Reactivate</button></form>
+        {{else}}
+        <form method="post" action="/admin/users/{{id}}/suspend">{{> csrf}}<button type="submit">Suspend</button></form>
+        {{/if}}
+        <form method="post" action="/admin/users/{{id}}/role">{{> csrf}}
+          <select name="role">
+            <option value="ADMIN" {{#if (eq role 'ADMIN')}}selected{{/if}}>ADMIN</option>
+            <option value="AUTHOR" {{#if (eq role 'AUTHOR')}}selected{{/if}}>AUTHOR</option>
+            <option value="READER" {{#if (eq role 'READER')}}selected{{/if}}>READER</option>
+          </select>
+          <button type="submit">Set role</button>
+        </form>
+      </td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
