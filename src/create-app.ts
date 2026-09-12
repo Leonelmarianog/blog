@@ -22,6 +22,14 @@ import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-
  * Nest's internal reverse), and the FormViewInterceptor — WITHOUT listening. Shared by
  * `src/main.ts` (production) and the integration tests so the boot path has one source
  * of truth.
+ *
+ * `app.init()` is awaited before returning: `NestFactory.create()` only scans modules and
+ * instantiates dependencies — it does NOT call `NestApplication.init()`/`registerRouter()`,
+ * so the Nest router (and thus every controller route) is not mounted on the Express
+ * instance until `init()` (or `listen()`, which calls `init()`) runs. Production `main.ts`
+ * calls `listen()`, which is why the omission was invisible there; tests drive the app
+ * without listening, so `init()` must run here. `init()` is idempotent (guarded by
+ * `isInitialized`), so the subsequent `listen()` in `main.ts` is a no-op for init.
  */
 export async function createApp(): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
@@ -57,6 +65,11 @@ export async function createApp(): Promise<INestApplication> {
   // BadRequestExceptions and the @FormView re-render never fires.
   app.useGlobalFilters(new GlobalExceptionFilter(), new ValidationExceptionFilter());
   app.useGlobalInterceptors(new FormViewInterceptor(app.get(Reflector)));
+
+  // Mount the Nest router (controller routes, not-found handler, exception handler) on the
+  // Express instance. Without this, every request falls through to Express's default
+  // `Cannot GET /…` 404. See the doc comment above for why this is required for tests.
+  await app.init();
 
   return app;
 }
