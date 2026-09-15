@@ -1,0 +1,13 @@
+<form action="/upload" method="POST" enctype="multipart/form-data">
+  <input type="hidden" name="_csrf" value="{{csrfToken}}" />
+
+  <label for="file">Image file</label>
+  <input type="file" id="file" name="file" accept="image/png,image/jpeg,image/webp" required />
+
+  <label for="caption">Caption (optional)</label>
+  <input type="text" id="caption" name="caption" value="{{caption}}" maxlength="280" />
+
+  {{#if errors.form}}<p class="error">{{errors.form}}</p>{{/if}}
+
+  <button type="submit">Upload</button>
+</form>

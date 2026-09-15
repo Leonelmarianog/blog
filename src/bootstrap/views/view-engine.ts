@@ -28,6 +28,7 @@ export function configureViewEngine(app: Express): void {
   const viewsRoots = [
     join(SRC, 'shared-kernel', 'presentation', 'views'),
     join(SRC, 'contexts', 'iam', 'presentation', 'http', 'views'),
+    join(SRC, 'contexts', 'media', 'presentation', 'http', 'views'),
   ];
   const engine = (exphbs as unknown as ExpressHandlebarsModule).engine({
     layoutsDir: join(SRC, 'shared-kernel', 'presentation', 'views', 'layouts'),

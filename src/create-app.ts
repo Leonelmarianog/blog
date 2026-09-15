@@ -39,6 +39,14 @@ export async function createApp(): Promise<INestApplication> {
   // expects the Express instance, not the Nest app; the HttpAdapter wraps Express.
   configureViewEngine(app.getHttpAdapter().getInstance());
 
+  // Serve locally-stored media objects when the local-disk storage driver is active.
+  // The LocalDiskStorageAdapter.publicUrl returns "/storage/<key>"; this mount makes
+  // those URLs resolvable in dev/test. S3/Garage drivers serve objects from their own
+  // origin, so the mount is skipped.
+  if (config.get('STORAGE_DRIVER') === 'local') {
+    app.use('/storage', express.static(config.get('STORAGE_LOCAL_DIR')));
+  }
+
   // Body parsers must run before cookieParser/session/flash/csrf so req.body is
   // populated before csrf reads req.body._csrf.
   app.use(express.json());

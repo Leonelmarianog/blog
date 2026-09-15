@@ -5,10 +5,11 @@ import { CryptoModule } from './infrastructure/crypto/crypto.module';
 import { QueueModule } from './infrastructure/queue/queue.module';
 import { StorageModule } from './infrastructure/storage/storage.module';
 import { IamModule } from './contexts/iam/presentation/http/iam.module';
+import { MediaModule } from './contexts/media/presentation/http/media.module';
 import { SharedAuthzModule } from '@kernel/application/authorization';
 
 // QueueModule is @Global and provides QUEUE_PRODUCER (useClass: LoggingQueueProducer).
 // IamModule also binds QUEUE_PRODUCER locally — the local binding shadows the global
 // cleanly, and this redundancy is intentional.
-@Module({ imports: [ConfigModule, SharedAuthzModule, PersistenceModule, CryptoModule, QueueModule, StorageModule, IamModule] })
+@Module({ imports: [ConfigModule, SharedAuthzModule, PersistenceModule, CryptoModule, QueueModule, StorageModule, IamModule, MediaModule] })
 export class AppModule {}

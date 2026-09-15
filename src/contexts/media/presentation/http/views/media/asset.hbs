@@ -1,0 +1,9 @@
+<figure>
+  <img
+    src="{{asset.originalUrl}}"
+    {{#if asset.variants}}srcset="{{#each asset.variants}}{{url}} {{width}}w{{#unless @last}}, {{/unless}}{{/each}}"{{/if}}
+    sizes="(max-width: 800px) 100vw, 800px"
+    alt="{{asset.caption}}">
+  <figcaption>{{asset.originalMime}} · {{asset.originalWidth}}×{{asset.originalHeight}}</figcaption>
+</figure>
+<p><a href="/upload">Upload another</a></p>
