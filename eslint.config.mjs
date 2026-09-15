@@ -9,7 +9,7 @@ export default [
   ...tseslint.configs.recommended,
   {
     // Node CommonJS config files (e.g. jest.config.js) need Node globals + CommonJS source.
-    files: ['jest.config.js'],
+    files: ['jest.config.js', 'jest.integration.config.js'],
     languageOptions: { sourceType: 'commonjs', globals: globals.node },
   },
   {
@@ -27,6 +27,7 @@ export default [
       },
       'boundaries/elements': [
         { type: 'composition-root', pattern: 'src/main.ts' },
+        { type: 'composition-root', pattern: 'src/create-app.ts' },
         { type: 'composition-root', pattern: 'src/app.module.ts' },
         { type: 'kernel-domain', pattern: 'src/shared-kernel/domain/**' },
         // Port types must be listed before their parent application type so that

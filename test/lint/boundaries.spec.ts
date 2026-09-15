@@ -25,6 +25,7 @@ const config = {
     },
     'boundaries/elements': [
       { type: 'composition-root', pattern: 'src/main.ts' },
+      { type: 'composition-root', pattern: 'src/create-app.ts' },
       { type: 'composition-root', pattern: 'src/app.module.ts' },
       { type: 'kernel-domain', pattern: 'src/shared-kernel/domain/**' },
       // Port types must be listed before their parent application type so that

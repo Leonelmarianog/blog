@@ -42,8 +42,10 @@ interface MockRes {
   locals: { csrfToken: string; flash: unknown[] };
   redirected: string;
   rendered: Rendered | null;
+  statused: number | null;
   cookieSet: CookieSet | null;
   redirect: jest.Mock;
+  status: jest.Mock;
   render: jest.Mock;
   cookie: jest.Mock;
   clearCookie: jest.Mock;
@@ -61,9 +63,14 @@ function mkRes(): MockRes {
     locals: { csrfToken: 'csrf', flash: [] },
     redirected: '',
     rendered: null,
+    statused: null,
     cookieSet: null,
     redirect: jest.fn((code: number | string, url?: string) => {
       res.redirected = typeof code === 'string' ? code : (url ?? '');
+    }),
+    status: jest.fn((code: number) => {
+      res.statused = code;
+      return res;
     }),
     render: jest.fn((view: string, locals: Record<string, unknown>) => {
       res.rendered = { view, locals };
@@ -136,6 +143,7 @@ describe('AuthController', () => {
       req as unknown as AuthRequest,
       res as unknown as AuthResponse,
     );
+    expect(res.statused).toBe(200);
     expect(res.rendered?.view).toBe('iam/register');
     expect(res.rendered?.locals.errors).toBeDefined();
   });
@@ -153,7 +161,7 @@ describe('AuthController', () => {
       {} as unknown as GetCurrentUserUseCase,
       {} as unknown as UpdateProfileUseCase,
     );
-    const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: true });
+    const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: '1' });
     // emulate regenerate: the controller's establishSession calls
     // req.session.regenerate(cb) where cb sets userId + role + optional cookie.
     req.session.regenerate = (cb: () => void): void => {
@@ -162,7 +170,7 @@ describe('AuthController', () => {
     };
     const res = mkRes();
     await c.doLogin(
-      { email: 'a@b.com', password: 'pw', rememberMe: true },
+      { email: 'a@b.com', password: 'pw', rememberMe: '1' },
       req as unknown as AuthRequest,
       res as unknown as AuthResponse,
     );
@@ -185,13 +193,13 @@ describe('AuthController', () => {
       {} as unknown as GetCurrentUserUseCase,
       {} as unknown as UpdateProfileUseCase,
     );
-    const req = mkReq({ email: 'a@b.com', password: 'pw', rememberMe: false });
+    const req = mkReq({ email: 'a@b.com', password: 'pw' });
     req.session.regenerate = (cb: () => void): void => {
       cb();
     };
     const res = mkRes();
     await c.doLogin(
-      { email: 'a@b.com', password: 'pw', rememberMe: false },
+      { email: 'a@b.com', password: 'pw' },
       req as unknown as AuthRequest,
       res as unknown as AuthResponse,
     );
