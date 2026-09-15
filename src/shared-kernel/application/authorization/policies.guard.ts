@@ -20,13 +20,15 @@ export class PoliciesGuard implements CanActivate {
     const meta = this.reflector.get<PolicyRequirement>(POLICIES_KEY, context.getHandler());
     if (!meta) return true;
 
-    const role = req.session?.role;
-    const userId = req.session?.userId;
-    if (!role || !userId) throw new ForbiddenException();
-
-    const ability = this.abilities.build(role, userId);
     const resolved: AppSubjectInstance = await this.registry.resolveFor(meta.subject, req);
     const subjectArg = subject(meta.subject as AppSubject, resolved) as unknown as Parameters<AppAbility['can']>[1];
+
+    const role = req.session?.role;
+    const userId = req.session?.userId;
+    const ability = role && userId
+      ? this.abilities.build(role, userId)
+      : this.abilities.build('READER', '');
+
     if (!ability.can(meta.action, subjectArg)) throw new ForbiddenException();
     return true;
   }

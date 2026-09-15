@@ -39,3 +39,34 @@ describe('createAbilityFor', () => {
     }
   });
 });
+
+describe('createAbilityFor — Asset rules', () => {
+  it('everyone can read any Asset (public read)', () => {
+    for (const role of ['ADMIN', 'AUTHOR', 'READER'] as const) {
+      const ability = createAbilityFor(role, ME);
+      expect(ability.can('read', 'Asset')).toBe(true);
+      expect(ability.can('read', subject('Asset', { id: 'a1', ownerId: OTHER }))).toBe(true);
+    }
+  });
+
+  it('AUTHOR can create/update/delete own Asset, not another user\'s', () => {
+    const ability = createAbilityFor('AUTHOR', ME);
+    expect(ability.can('create', subject('Asset', { id: '', ownerId: ME }))).toBe(true);
+    expect(ability.can('update', subject('Asset', { id: 'a1', ownerId: ME }))).toBe(true);
+    expect(ability.can('delete', subject('Asset', { id: 'a1', ownerId: ME }))).toBe(true);
+    expect(ability.can('update', subject('Asset', { id: 'a2', ownerId: OTHER }))).toBe(false);
+    expect(ability.can('delete', subject('Asset', { id: 'a2', ownerId: OTHER }))).toBe(false);
+  });
+
+  it('READER cannot create/update/delete any Asset', () => {
+    const ability = createAbilityFor('READER', ME);
+    expect(ability.can('create', subject('Asset', { id: '', ownerId: ME }))).toBe(false);
+    expect(ability.can('update', subject('Asset', { id: 'a1', ownerId: ME }))).toBe(false);
+  });
+
+  it('ADMIN can manage any Asset', () => {
+    const ability = createAbilityFor('ADMIN', ME);
+    expect(ability.can('manage', 'Asset')).toBe(true);
+    expect(ability.can('delete', subject('Asset', { id: 'a2', ownerId: OTHER }))).toBe(true);
+  });
+});

@@ -6,9 +6,23 @@ import { AbilityService } from '@kernel/application/authorization/ability.servic
 import { SubjectResolverRegistry } from '@kernel/application/authorization/subject-resolver-registry';
 import { UserSubjectResolver } from '@contexts/iam/application/authorization/user-subject-resolver';
 
+const OTHER = 'user-2';
+
 class AdminRoute { @Policies('manage', 'User') handler() {} }
 class ProfileRoute { @Policies('update', 'User') handler() {} }
 class NoPolicyRoute { handler() {} }
+class AssetReadRoute { @Policies('read', 'Asset') handler() {} }
+class AssetCreateRoute { @Policies('create', 'Asset') handler() {} }
+
+class StubAssetResolver {
+  readonly subject = 'Asset' as const;
+  resolve(req: Record<string, unknown>) {
+    const params = (req.params ?? {}) as Record<string, string>;
+    const session = (req.session ?? {}) as Record<string, string | undefined>;
+    if (!params.id) return { id: '', ownerId: session.userId ?? '' };
+    return { id: params.id, ownerId: (req.assetOwner ?? '') as string };
+  }
+}
 
 function ctx(handler: () => void, req: Record<string, unknown>): ExecutionContext {
   return {
@@ -60,6 +74,41 @@ describe('PoliciesGuard', () => {
     const route = new ProfileRoute();
     await expect(
       guard.canActivate(ctx(route.handler, { session: { userId: 'me' } })),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+});
+
+describe('PoliciesGuard — anonymous public read', () => {
+  const reflector = new Reflector();
+  const abilities = new AbilityService();
+  const registry = new SubjectResolverRegistry();
+  registry.register(new UserSubjectResolver(registry));
+  registry.register(new StubAssetResolver() as never);
+  const guard = new PoliciesGuard(reflector, abilities, registry);
+
+  it('allows anonymous read on Asset (no session)', async () => {
+    const route = new AssetReadRoute();
+    const ok = await guard.canActivate(ctx(route.handler, { params: { id: 'a1' }, assetOwner: OTHER }));
+    expect(ok).toBe(true);
+  });
+
+  it('denies anonymous create on Asset (no session)', async () => {
+    const route = new AssetCreateRoute();
+    await expect(
+      guard.canActivate(ctx(route.handler, {})),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('allows AUTHOR create on Asset (ownerId sourced from session)', async () => {
+    const route = new AssetCreateRoute();
+    const ok = await guard.canActivate(ctx(route.handler, { session: { userId: 'me', role: 'AUTHOR' } }));
+    expect(ok).toBe(true);
+  });
+
+  it('denies READER create on Asset', async () => {
+    const route = new AssetCreateRoute();
+    await expect(
+      guard.canActivate(ctx(route.handler, { session: { userId: 'me', role: 'READER' } })),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });
