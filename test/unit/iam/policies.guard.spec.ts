@@ -1,21 +1,14 @@
 import { type ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PoliciesGuard } from '@contexts/iam/presentation/http/guards/policies.guard';
-import { Policies } from '@contexts/iam/presentation/http/decorators/policies.decorator';
-import { AbilityService } from '@contexts/iam/application/authorization/ability.service';
+import { PoliciesGuard } from '@kernel/application/authorization/policies.guard';
+import { Policies } from '@kernel/application/authorization/policies.decorator';
+import { AbilityService } from '@kernel/application/authorization/ability.service';
+import { SubjectResolverRegistry } from '@kernel/application/authorization/subject-resolver-registry';
 import { UserSubjectResolver } from '@contexts/iam/application/authorization/user-subject-resolver';
 
-class AdminRoute {
-  @Policies('manage', 'User')
-  handler() {}
-}
-class ProfileRoute {
-  @Policies('update', 'User')
-  handler() {}
-}
-class NoPolicyRoute {
-  handler() {}
-}
+class AdminRoute { @Policies('manage', 'User') handler() {} }
+class ProfileRoute { @Policies('update', 'User') handler() {} }
+class NoPolicyRoute { handler() {} }
 
 function ctx(handler: () => void, req: Record<string, unknown>): ExecutionContext {
   return {
@@ -27,7 +20,9 @@ function ctx(handler: () => void, req: Record<string, unknown>): ExecutionContex
 describe('PoliciesGuard', () => {
   const reflector = new Reflector();
   const abilities = new AbilityService();
-  const guard = new PoliciesGuard(reflector, abilities, [new UserSubjectResolver()]);
+  const registry = new SubjectResolverRegistry();
+  registry.register(new UserSubjectResolver(registry));
+  const guard = new PoliciesGuard(reflector, abilities, registry);
 
   it('allows ADMIN to manage User', async () => {
     const route = new AdminRoute();

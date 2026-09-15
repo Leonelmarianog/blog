@@ -1,7 +1,7 @@
 import { UseCase, ok, fail, type Result } from '@kernel/application';
 import { DomainError } from '@kernel/domain';
 import type { UserId } from '../../domain/user/user.types';
-import type { Role } from '../../domain/authorization/role';
+import type { Role } from '@kernel/domain/authorization/role';
 import type { UserStatus } from '../../domain/user/user-status';
 import type { UserRepositoryPort } from '../ports';
 

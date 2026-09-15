@@ -1,6 +1,6 @@
 import { UseCase, ok, fail, type Result, type UnitOfWorkPort } from '@kernel/application';
 import { DomainError } from '@kernel/domain';
-import type { Role } from '../../domain/authorization/role';
+import type { Role } from '@kernel/domain/authorization/role';
 import type { UserId } from '../../domain/user/user.types';
 import type { UserRepositoryPort, SessionRepositoryPort } from '../ports';
 

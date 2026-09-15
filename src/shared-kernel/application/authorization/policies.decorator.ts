@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import type { AppAction, AppSubject } from '@contexts/iam/application/authorization';
+import type { AppAction, AppSubject } from '@kernel/domain/authorization/subject';
 
 export const POLICIES_KEY = 'policies';
 export interface PolicyRequirement {

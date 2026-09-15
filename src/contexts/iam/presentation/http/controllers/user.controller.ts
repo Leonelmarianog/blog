@@ -3,9 +3,9 @@ import { ListUsersUseCase } from '@contexts/iam/application/queries/list-users.u
 import { SuspendUserUseCase } from '@contexts/iam/application/commands/suspend-user.use-case';
 import { UnsuspendUserUseCase } from '@contexts/iam/application/commands/unsuspend-user.use-case';
 import { ChangeUserRoleUseCase } from '@contexts/iam/application/commands/change-user-role.use-case';
-import { SessionGuard } from '../guards/session.guard';
-import { PoliciesGuard } from '../guards/policies.guard';
-import { Policies } from '../decorators/policies.decorator';
+import { SessionGuard } from '@kernel/application/authorization/session.guard';
+import { PoliciesGuard } from '@kernel/application/authorization/policies.guard';
+import { Policies } from '@kernel/application/authorization/policies.decorator';
 import { FormView } from '@bootstrap/exceptions/form-view.decorator';
 import { ChangeRoleDto } from '../dto/change-role.dto';
 import type { AuthRequest, AuthResponse } from './auth.controller';

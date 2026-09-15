@@ -2,7 +2,7 @@ import { AggregateRoot, Identifier } from '@kernel/domain';
 import { Email } from './email.vo';
 import { HashedPassword } from './hashed-password.vo';
 import { DisplayName } from './display-name.vo';
-import type { Role } from '../authorization/role';
+import type { Role } from '@kernel/domain/authorization/role';
 import type { UserStatus } from './user-status';
 import type { UserId } from './user.types';
 import { UserRegistered, EmailVerified, PasswordReset, UserRoleChanged, UserSuspended, UserUnsuspended, UserProfileUpdated } from '../events/user-events';

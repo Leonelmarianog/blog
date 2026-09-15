@@ -30,14 +30,9 @@ import { UpdateProfileUseCase } from '@contexts/iam/application/commands/update-
 import { SuspendUserUseCase } from '@contexts/iam/application/commands/suspend-user.use-case';
 import { UnsuspendUserUseCase } from '@contexts/iam/application/commands/unsuspend-user.use-case';
 import { ChangeUserRoleUseCase } from '@contexts/iam/application/commands/change-user-role.use-case';
-import { AbilityService } from '@contexts/iam/application/authorization/ability.service';
 import { UserSubjectResolver } from '@contexts/iam/application/authorization/user-subject-resolver';
-import { SUBJECT_RESOLVERS, type SubjectResolver } from '@contexts/iam/application/authorization/subject-resolver.port';
-import { Reflector } from '@nestjs/core';
 import { AuthController } from './controllers/auth.controller';
 import { UserController } from './controllers/user.controller';
-import { SessionGuard } from './guards/session.guard';
-import { PoliciesGuard } from './guards/policies.guard';
 
 // Each `useFactory` uses the `ConstructorParameters<typeof X>` spread idiom so the factory
 // param types are inferred from the constructor — no explicit `any` tokens (which
@@ -74,12 +69,7 @@ import { PoliciesGuard } from './guards/policies.guard';
     // QUEUE_PRODUCER is also provided by the global QueueModule — this local binding
     // shadows the global one cleanly, and this redundancy is intentional.
     { provide: QUEUE_PRODUCER, useClass: LoggingQueueProducer },
-    SessionGuard,
-    Reflector,
-    PoliciesGuard,
-    AbilityService,
     UserSubjectResolver,
-    { provide: SUBJECT_RESOLVERS, useFactory: (resolver: UserSubjectResolver): SubjectResolver[] => [resolver], inject: [UserSubjectResolver] },
     {
       provide: PasswordHasherService,
       useFactory: (...args: ConstructorParameters<typeof PasswordHasherService>) => new PasswordHasherService(...args),
@@ -178,9 +168,6 @@ import { PoliciesGuard } from './guards/policies.guard';
     QUEUE_PRODUCER,
     RotateSessionUseCase,
     AuthController,
-    PoliciesGuard,
-    AbilityService,
-    SUBJECT_RESOLVERS,
   ],
 })
 export class IamModule {}

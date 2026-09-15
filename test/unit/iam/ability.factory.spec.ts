@@ -1,5 +1,5 @@
 import { subject } from '@casl/ability';
-import { createAbilityFor } from '@contexts/iam/domain/authorization/ability.factory';
+import { createAbilityFor } from '@kernel/application/authorization/ability.factory';
 
 const ME = 'user-1';
 const OTHER = 'user-2';

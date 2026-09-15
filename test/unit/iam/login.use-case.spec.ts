@@ -3,7 +3,7 @@ import { PasswordHasherService } from '@contexts/iam/application/services/passwo
 import { RememberMeTokenService } from '@contexts/iam/application/services/remember-me-token.service';
 import { User } from '@contexts/iam/domain/user/user.aggregate';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
-import type { Role } from '@contexts/iam/domain/authorization/role';
+import type { Role } from '@kernel/domain/authorization/role';
 import {
   email,
   name,

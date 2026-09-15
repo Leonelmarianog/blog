@@ -56,7 +56,7 @@ const config = {
           { from: 'context-domain', allow: ['kernel-domain', 'context-domain'] },
           { from: 'context-application-port', allow: ['context-domain', 'kernel-domain', 'context-application-port'] },
           { from: 'context-application', allow: ['context-domain', 'kernel-domain', 'kernel-application', 'context-application', 'context-application-port'] },
-          { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
+          { from: 'context-presentation', allow: ['context-application', 'context-presentation', 'kernel-application'] },
           { from: 'context-composition', allow: ['context-composition', 'kernel-domain', 'context-domain', 'kernel-application', 'kernel-application-port', 'context-application', 'context-application-port', 'context-presentation', 'infrastructure'] },
           { from: 'infrastructure', allow: ['kernel-domain', 'context-domain', 'kernel-application', 'kernel-application-port', 'context-application-port', 'infrastructure'] },
         ],

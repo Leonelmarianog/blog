@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { createAbilityFor, type AppAbility } from '@contexts/iam/domain/authorization/ability.factory';
-import type { Role } from '@contexts/iam/domain/authorization/role';
+import { createAbilityFor, type AppAbility } from './ability.factory';
+import type { Role } from '@kernel/domain/authorization/role';
 
 @Injectable()
 export class AbilityService {

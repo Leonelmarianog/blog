@@ -1,4 +1,4 @@
-import { type AppAction, type AppSubject, type AppSubjectInstance } from '@contexts/iam/domain/authorization/subject';
+import { type AppAction, type AppSubject, type AppSubjectInstance } from '@kernel/domain/authorization/subject';
 
 describe('authorization subject types', () => {
   it('AppSubject covers the baseline resources', () => {
