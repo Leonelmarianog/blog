@@ -146,15 +146,103 @@ describe('boundary rules', () => {
     expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
   });
 
-  it('allows context-presentation (guard) -> context-application (AbilityService)', () => {
-    const code = `import { AbilityService } from '@contexts/iam/application/authorization/ability.service';\nexport class G { constructor(a: AbilityService) {} }`;
-    const messages = lintFixture('src/contexts/iam/presentation/http/guards/g.ts', code);
-    expect(messages).toHaveLength(0);
+  it('allows context-presentation (controller) -> kernel-application (PoliciesGuard)', () => {
+    const code = `import { PoliciesGuard } from '@kernel/application/authorization/policies.guard';\nexport class C { constructor(g: PoliciesGuard) {} }`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/controllers/foo.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
   });
 
-  it('disallows context-presentation (guard) -> context-domain (aggregate) directly', () => {
+  it('disallows context-presentation (controller) -> context-domain (aggregate) directly', () => {
     const code = `import { User } from '@contexts/iam/domain/user/user.aggregate';\nexport const u = () => User;`;
-    const messages = lintFixture('src/contexts/iam/presentation/http/guards/g.ts', code);
+    const messages = lintFixture('src/contexts/iam/presentation/http/controllers/foo.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+  });
+
+  // --- Authorization hoist ---
+
+  it('allows context-domain (User aggregate) -> kernel-domain (Role)', () => {
+    const code = `import type { Role } from '@kernel/domain/authorization/role';\nexport class U { constructor(readonly role: Role) {} }`;
+    const messages = lintFixture('src/contexts/iam/domain/user/user.aggregate.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('disallows context-domain (User aggregate) -> kernel-application (authz machinery)', () => {
+    const code = `import { AbilityService } from '@kernel/application/authorization/ability.service';\nexport class U { constructor(readonly a: AbilityService) {} }`;
+    const messages = lintFixture('src/contexts/iam/domain/user/user.aggregate.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+  });
+
+  it('allows context-presentation (ChangeRoleDto) -> context-application (IAM authz shim barrel)', () => {
+    const code = `import { ROLES } from '@contexts/iam/application/authorization';\nexport class D { r = ROLES; }`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/dto/change-role.dto.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('disallows context-presentation (ChangeRoleDto) -> kernel-domain (Role) directly', () => {
+    const code = `import { ROLES } from '@kernel/domain/authorization/role';\nexport class D { r = ROLES; }`;
+    const messages = lintFixture('src/contexts/iam/presentation/http/dto/change-role.dto.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+  });
+
+  it('allows kernel-application (ability.factory) -> kernel-domain (AppSubject)', () => {
+    const code = `import type { AppSubject } from '@kernel/domain/authorization/subject';\nexport type A = AppSubject;`;
+    const messages = lintFixture('src/shared-kernel/application/authorization/ability.factory.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  // --- contexts/media layering ---
+
+  it('allows media context-domain (asset) -> kernel-domain', () => {
+    const code = `import { Identifier } from '@kernel/domain';\nexport type A = Identifier<'Asset'>;`;
+    const messages = lintFixture('src/contexts/media/domain/asset/asset.types.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('disallows media context-domain (asset) -> context-application', () => {
+    const code = `import { UploadAssetUseCase } from '@contexts/media/application/commands/upload-asset.use-case';\nexport const x = UploadAssetUseCase;`;
+    const messages = lintFixture('src/contexts/media/domain/asset/asset.aggregate.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+  });
+
+  it('allows media context-application (use-case) -> media domain + kernel-application', () => {
+    const code = `import { Asset } from '../domain/asset/asset.aggregate';\nimport { UnitOfWorkPort } from '@kernel/application';\nexport class U { constructor(a: typeof Asset, u: UnitOfWorkPort<unknown>) {} }`;
+    const messages = lintFixture('src/contexts/media/application/commands/upload-asset.use-case.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('allows media context-application (resolver) -> kernel-application (registry)', () => {
+    const code = `import { SubjectResolverRegistry } from '@kernel/application/authorization/subject-resolver-registry';\nexport class R { constructor(reg: SubjectResolverRegistry) {} }`;
+    const messages = lintFixture('src/contexts/media/application/authorization/asset-subject-resolver.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('allows media context-presentation (controller) -> media application + kernel-application', () => {
+    const code = `import { UploadAssetUseCase } from '@contexts/media/application/commands/upload-asset.use-case';\nimport { PoliciesGuard } from '@kernel/application/authorization/policies.guard';\nexport class C { constructor(u: UploadAssetUseCase, g: PoliciesGuard) {} }`;
+    const messages = lintFixture('src/contexts/media/presentation/http/controllers/media.controller.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('disallows media context-presentation (controller) -> media context-domain', () => {
+    const code = `import { Asset } from '@contexts/media/domain/asset/asset.aggregate';\nexport const x = Asset;`;
+    const messages = lintFixture('src/contexts/media/presentation/http/controllers/media.controller.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
+  });
+
+  it('allows media context-composition (media.module) -> infrastructure + media application', () => {
+    const code = `import { PrismaAssetRepository } from '@infra/persistence/repositories/asset.repository';\nimport { UploadAssetUseCase } from '@contexts/media/application/commands/upload-asset.use-case';\nexport const x = [PrismaAssetRepository, UploadAssetUseCase];`;
+    const messages = lintFixture('src/contexts/media/presentation/http/media.module.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('allows infrastructure (storage) -> media context-application port', () => {
+    const code = `import type { StoragePort } from '@contexts/media/application/ports/storage.port';\nexport type S = StoragePort;`;
+    const messages = lintFixture('src/infrastructure/storage/s3.storage-adapter.ts', code);
+    expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(false);
+  });
+
+  it('disallows infrastructure (storage) -> media context-application (use-case)', () => {
+    const code = `import { UploadAssetUseCase } from '@contexts/media/application/commands/upload-asset.use-case';\nexport const x = UploadAssetUseCase;`;
+    const messages = lintFixture('src/infrastructure/storage/s3.storage-adapter.ts', code);
     expect(messages.some((m) => m.ruleId === 'boundaries/element-types')).toBe(true);
   });
 });
