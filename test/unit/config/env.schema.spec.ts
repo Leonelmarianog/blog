@@ -23,3 +23,22 @@ describe('envSchema', () => {
     expect(r.success).toBe(false);
   });
 });
+
+describe('env schema — storage vars', () => {
+  const valid = {
+    NODE_ENV: 'test' as const,
+    DATABASE_URL: 'postgres://x',
+    SESSION_SECRET: 'x'.repeat(20),
+    REDIS_URL: 'redis://x',
+  };
+
+  it('defaults STORAGE_DRIVER to local and STORAGE_MAX_BYTES to 5 MiB', () => {
+    const env = envSchema.parse(valid);
+    expect(env.STORAGE_DRIVER).toBe('local');
+    expect(env.STORAGE_MAX_BYTES).toBe(5_242_880);
+  });
+
+  it('rejects an unknown STORAGE_DRIVER', () => {
+    expect(() => envSchema.parse({ ...valid, STORAGE_DRIVER: 'minio' })).toThrow();
+  });
+});

@@ -47,13 +47,13 @@ describe('parseEnv', () => {
 
 describe('ConfigService', () => {
   it('returns typed values', () => {
-    const svc = new ConfigService({
+    const svc = new ConfigService(parseEnv({
       NODE_ENV: 'test',
-      PORT: 3001,
+      PORT: '3001',
       DATABASE_URL: DB_URL,
       SESSION_SECRET,
       REDIS_URL,
-    });
+    } as NodeJS.ProcessEnv));
     expect(svc.get('NODE_ENV')).toBe('test');
     expect(svc.get('PORT')).toBe(3001);
     expect(svc.get('DATABASE_URL')).toBe(DB_URL);
