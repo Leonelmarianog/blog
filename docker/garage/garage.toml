@@ -1,0 +1,19 @@
+# Minimal single-node Garage config for local dev.
+# The garage CLI (garage-init.sh) talks to RPC on 3901; the app talks to S3 on 3900.
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "lmdb"
+
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "9ec6d4e8b3a14c0f9d2a1e6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d"
+
+[s3_api]
+api_bind_addr = "[::]:3900"
+s3_region = "garage"
+root_domain = ".s3.garage"
+
+[admin]
+api_bind_addr = "[::]:3902"

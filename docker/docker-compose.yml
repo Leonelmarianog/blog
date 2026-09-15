@@ -1,6 +1,6 @@
 # Dev backing services for the blog baseline.
-# Only postgres + redis are defined here. Garage (S3-compatible dev storage)
-# and Mailpit (dev SMTP) are added in their respective plans (media / mail+queue).
+# postgres + redis + garage (S3-compatible dev storage). Mailpit (dev SMTP) is
+# deferred to a later task and kept commented below.
 services:
   postgres:
     image: postgres:17-alpine
@@ -33,10 +33,27 @@ services:
       timeout: 3s
       retries: 10
 
-  # --- Deferred to later plans (kept here as a reminder, commented out) ---
-  # garage:    # Plan 6 (media/storage) — needs garage.toml + bucket init
-  # mailpit:   # Plan 7 (mail/queue)    — image: axllent/mailpit, ports 1025/8025
+  garage:
+    image: dxflr/garage:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "3900:3900"
+      - "3901:3901"
+    volumes:
+      - ./garage/garage.toml:/etc/garage/garage.toml:ro
+      - ./garage/garage-init.sh:/etc/garage/garage-init.sh:ro
+      - garagedata:/var/lib/garage
+      - ./garage/credentials.env:/etc/garage/credentials.env
+    healthcheck:
+      test: ["CMD-SHELL", "garage -c /etc/garage/garage.toml status || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # --- Deferred to a later task (kept here as a reminder, commented out) ---
+  # mailpit:   # image: axllent/mailpit, ports 1025/8025
 
 volumes:
   pgdata:
   redisdata:
+  garagedata:
