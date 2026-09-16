@@ -16,6 +16,16 @@ export const envSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().trim().default(''),
   S3_PUBLIC_BASE: z.string().trim().default(''),
   S3_FORCE_PATH_STYLE: z.coerce.boolean().default(true),
+  // Rate limiting (Plan 7b). TTLs in seconds. Register/resend/reset TTLs are code constants.
+  RATE_LIMIT_GLOBAL_TTL: z.coerce.number().int().positive().default(15),
+  RATE_LIMIT_GLOBAL_LIMIT: z.coerce.number().int().positive().default(100),
+  RATE_LIMIT_LOGIN_TTL: z.coerce.number().int().positive().default(900),
+  RATE_LIMIT_LOGIN_LIMIT: z.coerce.number().int().positive().default(10),
+  RATE_LIMIT_REGISTER_LIMIT: z.coerce.number().int().positive().default(5),
+  RATE_LIMIT_RESEND_LIMIT: z.coerce.number().int().positive().default(3),
+  RATE_LIMIT_RESET_LIMIT: z.coerce.number().int().positive().default(5),
+  // Number of proxy hops to trust for X-Forwarded-For (0 = off; req.ips stays empty).
+  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
 });
 
 export type Env = z.infer<typeof envSchema>;
