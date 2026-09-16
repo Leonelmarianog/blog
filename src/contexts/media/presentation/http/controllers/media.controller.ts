@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Param, Body, Req, Res, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { CsrfInterceptor } from '@bootstrap/csrf/csrf.interceptor';
 import { UploadAssetUseCase, type UploadAssetInput } from '@contexts/media/application/commands/upload-asset.use-case';
 import { GetAssetUseCase, type GetAssetInput } from '@contexts/media/application/queries/get-asset.use-case';
 import { UploadMetadataDto } from '../dto/upload-metadata.dto';
@@ -61,7 +62,7 @@ export class MediaController {
   @Post('upload')
   @UseGuards(SessionGuard, PoliciesGuard)
   @Policies('create', 'Asset')
-  @UseInterceptors(FileInterceptor('file', multerOptions))
+  @UseInterceptors(FileInterceptor('file', multerOptions), CsrfInterceptor)
   @FormView('media/upload')
   async doUpload(
     @UploadedFile() file: Express.Multer.File | undefined,

@@ -21,7 +21,6 @@ export const AssetMapper = {
       variants: {
         create: asset.variants.map((v) => ({
           id: Identifier.generate<'AssetVariant'>(),
-          assetId: asset.id,
           label: v.label,
           key: v.key,
           mime: v.mime,

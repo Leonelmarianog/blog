@@ -25,9 +25,10 @@ describe('AssetMapper', () => {
     expect(persisted.id).toBe(asset.id);
     expect(persisted.originalKey).toBe('assets/a/original.png');
     // `variants.create` is a Prisma union (single | array | nested); the mapper always
-    // builds an array, so narrow it via a typed cast to satisfy the compiler.
+    // builds an array, so narrow it via a typed cast to satisfy the compiler. The nested
+    // create omits `assetId` — the relation sets the foreign key implicitly.
     const created = (persisted.variants?.create ?? []) as unknown as Array<{
-      id: string; assetId: string; label: string; key: string; mime: string; size: number; width: number; height: number;
+      id: string; label: string; key: string; mime: string; size: number; width: number; height: number;
     }>;
     expect(created).toHaveLength(2);
 
@@ -35,7 +36,7 @@ describe('AssetMapper', () => {
       id: asset.id, ownerId: OWNER, originalKey: persisted.originalKey, originalMime: persisted.originalMime,
       originalSize: persisted.originalSize, originalWidth: persisted.originalWidth, originalHeight: persisted.originalHeight,
       createdAt: asset.createdAt, updatedAt: asset.updatedAt,
-      variants: created.map((v) => ({ id: v.id, assetId: v.assetId, label: v.label, key: v.key, mime: v.mime, size: v.size, width: v.width, height: v.height })),
+      variants: created.map((v) => ({ id: v.id, assetId: asset.id, label: v.label, key: v.key, mime: v.mime, size: v.size, width: v.width, height: v.height })),
     };
     const restored = AssetMapper.toDomain(row as never);
     expect(restored.id).toBe(asset.id);

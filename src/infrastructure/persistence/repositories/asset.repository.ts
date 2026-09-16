@@ -36,7 +36,7 @@ export class PrismaAssetRepository implements AssetRepositoryPort<Prisma.Transac
           createMany: {
             data: asset.variants.map((v) => ({
               id: Identifier.generate<'AssetVariant'>(),
-              assetId: asset.id, label: v.label, key: v.key, mime: v.mime, size: v.size, width: v.width, height: v.height,
+              label: v.label, key: v.key, mime: v.mime, size: v.size, width: v.width, height: v.height,
             })),
           },
         },

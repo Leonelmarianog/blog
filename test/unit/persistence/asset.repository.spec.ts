@@ -26,8 +26,10 @@ function stubClient(): PrismaService {
       create: jest.fn(async (arg: { data: Row }) => {
         const id = String(arg.data.id);
         assets[id] = { ...arg.data };
+        // Prisma sets the relation FK implicitly on nested creates; the stub mirrors that
+        // so findById's `v.assetId === a.id` filter resolves the variants back to the asset.
         const nested = (arg.data.variants as { create?: Row[] } | undefined)?.create ?? [];
-        for (const v of nested) { variants[String(v.id)] = { ...v }; }
+        for (const v of nested) { variants[String(v.id)] = { ...v, assetId: id }; }
         return arg.data;
       }),
       update: jest.fn(async (arg: { where: Where; data: Row }) => {
