@@ -29,7 +29,9 @@ export async function formPostUrls(
   postUrl: string,
   fields: Record<string, string | number | boolean>,
 ): Promise<supertest.Response> {
-  const getRes = await agent.get(getUrl).expect(200);
+  // Browser form submissions send Accept: text/html — set it so content-negotiated error
+  // filters (e.g. the 429 throttle filter) respond with the HTML/redirect branch, not JSON.
+  const getRes = await agent.get(getUrl).set('Accept', 'text/html').expect(200);
   const csrf = getCsrfToken(getRes.text);
-  return agent.post(postUrl).type('form').send({ ...fields, _csrf: csrf });
+  return agent.post(postUrl).type('form').set('Accept', 'text/html').send({ ...fields, _csrf: csrf });
 }

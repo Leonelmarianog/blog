@@ -13,6 +13,7 @@ import { RememberMeMiddleware } from './bootstrap/remember-me/remember-me.middle
 import { ValidationExceptionFilter } from './bootstrap/exceptions/validation-exception.filter';
 import { GlobalExceptionFilter } from './bootstrap/exceptions/global-exception.filter';
 import { FormViewInterceptor } from './bootstrap/exceptions/form-view.interceptor';
+import { ThrottlerExceptionFilter } from './infrastructure/ratelimit/throttler-exception.filter';
 import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-session.use-case';
 import pinoHttp from 'pino-http';
 import type { DestinationStream } from 'pino';
@@ -54,8 +55,14 @@ export async function createApp(opts: AppOptions = {}): Promise<INestApplication
   app.useLogger(app.get(Logger));
 
   // View engine first so res.render works in filters/middleware. `configureViewEngine`
-  // expects the Express instance, not the Nest app; the HttpAdapter wraps Express.
-  configureViewEngine(app.getHttpAdapter().getInstance());
+  // expects the Express instance, not the Nest app; the HttpAdapter wraps Express. The
+  // same instance is reused below to set `trust proxy` (Express settings live on it).
+  const expressInstance = app.getHttpAdapter().getInstance();
+  configureViewEngine(expressInstance);
+
+  // Trust X-Forwarded-For so per-IP rate limiting uses the real client IP behind a proxy.
+  // 0 = off (req.ips stays empty; the IP tracker falls back to the socket address).
+  expressInstance.set('trust proxy', config.get('TRUST_PROXY'));
 
   // Serve locally-stored media objects when the local-disk storage driver is active.
   // The LocalDiskStorageAdapter.publicUrl returns "/storage/<key>"; this mount makes
@@ -92,12 +99,11 @@ export async function createApp(opts: AppOptions = {}): Promise<INestApplication
   app.use((...a: Parameters<typeof csrf.use>) => csrf.use(...a));
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: false }));
-  // Nest reverses the global-filters array before selection and picks the first match,
-  // where a catch-all `@Catch()` matches everything. Register the catch-all FIRST so
-  // that after the internal reverse, the specific ValidationExceptionFilter is checked
-  // before the GlobalExceptionFilter — otherwise the catch-all swallows
-  // BadRequestExceptions and the @FormView re-render never fires.
-  app.useGlobalFilters(new GlobalExceptionFilter(), new ValidationExceptionFilter());
+  // Nest reverses the global-filters array before selection and picks the first @Catch match.
+  // Input order [GlobalExceptionFilter (catch-all), ThrottlerExceptionFilter (@Catch(ThrottlerException)),
+  // ValidationExceptionFilter (@Catch(BadRequestException))] reverses to [Validation, Throttler, Global],
+  // so both specific filters win over the catch-all. A ThrottlerException is handled here, not as a 500.
+  app.useGlobalFilters(new GlobalExceptionFilter(), new ThrottlerExceptionFilter(), new ValidationExceptionFilter());
   app.useGlobalInterceptors(new FormViewInterceptor(app.get(Reflector)));
 
   // Mount the Nest router (controller routes, not-found handler, exception handler) on the

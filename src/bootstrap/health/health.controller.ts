@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 import { PrismaHealthIndicator } from './indicators/prisma.health-indicator';
 import { RedisHealthIndicator } from './indicators/redis.health-indicator';
@@ -15,6 +16,7 @@ import { StorageHealthIndicator } from './indicators/storage.health-indicator';
  * `HealthCheckService.check([...])` only aggregates those results.
  */
 @Controller('health')
+@SkipThrottle({ default: true, 'login-ip': true, 'login-email': true, register: true, 'resend-verification': true, 'resend-reset': true, 'reset-submit': true })
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,

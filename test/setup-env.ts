@@ -19,3 +19,14 @@ process.env.S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID ?? '';
 process.env.S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY ?? '';
 process.env.S3_PUBLIC_BASE = process.env.S3_PUBLIC_BASE ?? '';
 process.env.S3_FORCE_PATH_STYLE = process.env.S3_FORCE_PATH_STYLE ?? 'true';
+
+// Rate limiting defaults (Plan 7b). `??` so integration container values win.
+process.env.RATE_LIMIT_GLOBAL_TTL = process.env.RATE_LIMIT_GLOBAL_TTL ?? '15';
+process.env.RATE_LIMIT_GLOBAL_LIMIT = process.env.RATE_LIMIT_GLOBAL_LIMIT ?? '100';
+process.env.RATE_LIMIT_LOGIN_TTL = process.env.RATE_LIMIT_LOGIN_TTL ?? '900';
+process.env.RATE_LIMIT_LOGIN_LIMIT = process.env.RATE_LIMIT_LOGIN_LIMIT ?? '10';
+process.env.RATE_LIMIT_REGISTER_LIMIT = process.env.RATE_LIMIT_REGISTER_LIMIT ?? '5';
+process.env.RATE_LIMIT_RESEND_LIMIT = process.env.RATE_LIMIT_RESEND_LIMIT ?? '3';
+process.env.RATE_LIMIT_RESET_LIMIT = process.env.RATE_LIMIT_RESET_LIMIT ?? '5';
+// Integration tests simulate rotating IPs via X-Forwarded-For, so trust one hop.
+process.env.TRUST_PROXY = process.env.TRUST_PROXY ?? '1';
