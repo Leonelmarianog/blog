@@ -9,9 +9,10 @@ import { IamModule } from './contexts/iam/presentation/http/iam.module';
 import { MediaModule } from './contexts/media/presentation/http/media.module';
 import { SharedAuthzModule } from '@kernel/application/authorization';
 import { LoggerModule } from './bootstrap/logging/logger.module';
+import { HealthModule } from './bootstrap/health/health.module';
 
 // QueueModule is @Global and provides QUEUE_PRODUCER (useClass: LoggingQueueProducer).
 // IamModule also binds QUEUE_PRODUCER locally — the local binding shadows the global
 // cleanly, and this redundancy is intentional.
-@Module({ imports: [ConfigModule, LoggerModule.forRoot(), SharedAuthzModule, PersistenceModule, CryptoModule, QueueModule, StorageModule, RedisModule, IamModule, MediaModule] })
+@Module({ imports: [ConfigModule, LoggerModule.forRoot(), SharedAuthzModule, PersistenceModule, CryptoModule, QueueModule, StorageModule, RedisModule, IamModule, MediaModule, HealthModule] })
 export class AppModule {}

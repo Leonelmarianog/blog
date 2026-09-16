@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { HealthIndicatorResult } from '@nestjs/terminus';
-import type { PrismaService } from '@infra/persistence/prisma/prisma.service';
+import { PrismaService } from '@infra/persistence/prisma/prisma.service';
 
 /**
  * Readiness probe for Postgres via Prisma. Runs `SELECT 1` and reports `up`/`down`.
