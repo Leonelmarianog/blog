@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Param, Body, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ListUsersUseCase } from '@contexts/iam/application/queries/list-users.use-case';
 import { SuspendUserUseCase } from '@contexts/iam/application/commands/suspend-user.use-case';
 import { UnsuspendUserUseCase } from '@contexts/iam/application/commands/unsuspend-user.use-case';
@@ -13,6 +14,7 @@ export type { AuthRequest, AuthResponse };
 
 @Controller('admin/users')
 @UseGuards(SessionGuard, PoliciesGuard)
+@SkipThrottle({ 'login-ip': true, 'login-email': true, register: true, 'resend-verification': true, 'resend-reset': true, 'reset-submit': true })
 export class UserController {
   constructor(
     private readonly listUsers: ListUsersUseCase,

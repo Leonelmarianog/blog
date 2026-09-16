@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Query, Body, Req, Res, UseGuards } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { RegisterUseCase } from '@contexts/iam/application/commands/register.use-case';
 import { VerifyEmailUseCase } from '@contexts/iam/application/commands/verify-email.use-case';
 import { ResendVerificationUseCase } from '@contexts/iam/application/commands/resend-verification.use-case';
@@ -63,6 +64,7 @@ const RM_OPTS = {
 };
 
 @Controller()
+@SkipThrottle({ 'login-ip': true, 'login-email': true, register: true, 'resend-verification': true, 'resend-reset': true, 'reset-submit': true })
 export class AuthController {
   constructor(
     private readonly register: RegisterUseCase,
@@ -88,6 +90,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @SkipThrottle({ register: false })
   @FormView('iam/register')
   async doRegister(@Body() dto: RegisterDto, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
     const result = await this.register.execute({ email: dto.email, password: dto.password, now: new Date() });
@@ -118,6 +121,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @SkipThrottle({ 'login-ip': false, 'login-email': false })
   @FormView('iam/login')
   async doLogin(@Body() dto: LoginDto, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
     const result = await this.login.execute({
@@ -174,6 +178,7 @@ export class AuthController {
   }
 
   @Post('resend-verification')
+  @SkipThrottle({ 'resend-verification': false })
   @FormView('iam/verify-email')
   async doResend(@Body() dto: ResendVerificationDto, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
     await this.resendVerification.execute({ email: dto.email, now: new Date() });
@@ -193,6 +198,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
+  @SkipThrottle({ 'resend-reset': false })
   @FormView('iam/forgot-password')
   async doForgot(@Body() dto: ForgotPasswordDto, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
     await this.forgotPassword.execute({ email: dto.email, now: new Date() });
@@ -214,6 +220,7 @@ export class AuthController {
   }
 
   @Post('reset-password')
+  @SkipThrottle({ 'reset-submit': false })
   @FormView('iam/reset-password')
   async doReset(@Body() dto: ResetPasswordDto, @Req() req: AuthRequest, @Res() res: AuthResponse): Promise<void> {
     const result = await this.resetPassword.execute({
