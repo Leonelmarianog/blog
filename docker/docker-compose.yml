@@ -51,8 +51,12 @@ services:
       timeout: 3s
       retries: 20
 
-  # --- Deferred to a later task (kept here as a reminder, commented out) ---
-  # mailpit:   # image: axllent/mailpit, ports 1025/8025
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # web UI / HTTP API
 
 volumes:
   pgdata:
