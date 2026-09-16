@@ -19,6 +19,7 @@ import type { DestinationStream } from 'pino';
 import { Logger } from 'nestjs-pino';
 import { buildPinoOptions } from './bootstrap/logging/pino.factory';
 import { createCorrelationMiddleware } from './bootstrap/logging/correlation.middleware';
+import { createHelmet } from './bootstrap/helmet/helmet.factory';
 
 /**
  * Builds the fully-wired INestApplication — view engine, body parsers, the Express
@@ -43,6 +44,11 @@ export interface AppOptions {
 export async function createApp(opts: AppOptions = {}): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule, { bodyParser: false, bufferLogs: true });
   const config = app.get(ConfigService);
+
+  // Helmet first so every response (including middleware-thrown errors) carries security
+  // headers + the config-derived CSP. Mounted before pino/logger so headers land even when a
+  // downstream middleware throws before logging.
+  app.use(createHelmet(config));
 
   // Use pino as Nest's logger (flushes buffered bootstrap logs).
   app.useLogger(app.get(Logger));
