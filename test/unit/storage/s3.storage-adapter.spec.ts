@@ -42,4 +42,27 @@ describe('S3StorageAdapter', () => {
     }, client as never);
     expect(adapter.publicUrl('assets/a/original.png')).toBe('http://cdn/media/assets/a/original.png');
   });
+
+  it('health sends a HeadBucketCommand and reports ok', async () => {
+    const { client, sent } = mockS3Client();
+    const adapter = new S3StorageAdapter({
+      endpoint: 'http://s3.local', region: 'us-east-1', bucket: 'media',
+      accessKeyId: 'k', secretAccessKey: 's', publicBase: 'http://cdn/media', forcePathStyle: true,
+    }, client as never);
+    await expect(adapter.health()).resolves.toEqual({ ok: true });
+    expect(sent).toHaveLength(1);
+    expect((sent[0].Command as { name: string }).name).toBe('HeadBucketCommand');
+  });
+
+  it('health reports down when HeadBucket throws', async () => {
+    const { client } = mockS3Client();
+    (client.send as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+    const adapter = new S3StorageAdapter({
+      endpoint: 'http://s3.local', region: 'us-east-1', bucket: 'media',
+      accessKeyId: 'k', secretAccessKey: 's', publicBase: 'http://cdn/media', forcePathStyle: true,
+    }, client as never);
+    const result = await adapter.health();
+    expect(result.ok).toBe(false);
+    expect((result as { message: string }).message).toBe('boom');
+  });
 });

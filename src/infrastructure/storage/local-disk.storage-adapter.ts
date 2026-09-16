@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { mkdirSync, writeFileSync, unlinkSync, existsSync } from 'node:fs';
+import { access, constants } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import type { StoragePort, StoredObject } from '@contexts/media/application/ports/storage.port';
+import type { StoragePort, StoredObject, StorageHealth } from '@contexts/media/application/ports/storage.port';
 
 export interface LocalDiskAdapterConfig {
   root: string;
@@ -32,5 +33,14 @@ export class LocalDiskStorageAdapter implements StoragePort {
 
   publicUrl(key: string): string {
     return `${this.publicBase}/${key}`;
+  }
+
+  async health(): Promise<StorageHealth> {
+    try {
+      await access(this.root, constants.R_OK | constants.W_OK);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
   }
 }

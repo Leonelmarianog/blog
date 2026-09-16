@@ -26,4 +26,16 @@ describe('LocalDiskStorageAdapter', () => {
     const adapter = new LocalDiskStorageAdapter({ root: dir, publicBase: '/storage' });
     expect(adapter.publicUrl('assets/a/original.png')).toBe('/storage/assets/a/original.png');
   });
+
+  it('health reports ok when the root dir is readable and writable', async () => {
+    const adapter = new LocalDiskStorageAdapter({ root: dir, publicBase: '/storage' });
+    await expect(adapter.health()).resolves.toEqual({ ok: true });
+  });
+
+  it('health reports down with a message when the root dir is missing', async () => {
+    const adapter = new LocalDiskStorageAdapter({ root: join(dir, 'nope'), publicBase: '/storage' });
+    const result = await adapter.health();
+    expect(result.ok).toBe(false);
+    expect((result as { message: string }).message).toMatch(/nope|ENOENT|access/i);
+  });
 });
