@@ -34,18 +34,19 @@ services:
       retries: 10
 
   garage:
-    image: dxflr/garage:v1.0.1
+    image: dxflrs/garage:v2.3.0
+    command: ["/garage", "-c", "/etc/garage/garage.toml", "server"]
     restart: unless-stopped
     ports:
       - "3900:3900"
       - "3901:3901"
     volumes:
       - ./garage/garage.toml:/etc/garage/garage.toml:ro
-      - ./garage/garage-init.sh:/etc/garage/garage-init.sh:ro
       - garagedata:/var/lib/garage
-      - ./garage/credentials.env:/etc/garage/credentials.env
+    # Distroless image: no shell, so the healthcheck uses CMD form (runs /garage directly).
+    # Provisioning runs on the host via docker/garage/garage-init.sh (`docker compose exec`).
     healthcheck:
-      test: ["CMD-SHELL", "garage -c /etc/garage/garage.toml status || exit 1"]
+      test: ["CMD", "/garage", "-c", "/etc/garage/garage.toml", "status"]
       interval: 5s
       timeout: 3s
       retries: 20
