@@ -18,6 +18,7 @@ import pinoHttp from 'pino-http';
 import type { DestinationStream } from 'pino';
 import { Logger } from 'nestjs-pino';
 import { buildPinoOptions } from './bootstrap/logging/pino.factory';
+import { createCorrelationMiddleware } from './bootstrap/logging/correlation.middleware';
 
 /**
  * Builds the fully-wired INestApplication — view engine, body parsers, the Express
@@ -69,6 +70,7 @@ export async function createApp(opts: AppOptions = {}): Promise<INestApplication
   // for the `req.body.*` redact paths if the parsers have already populated it. Helmet (Task 4)
   // mounts above this; correlation (Task 3) mounts just below.
   app.use(pinoHttp(buildPinoOptions(config, opts.pinoDestination)));
+  app.use(createCorrelationMiddleware());
 
   // Express middleware chain — order matters:
   //   bodyParsers -> cookieParser -> session -> remember-me -> flash -> csrf
