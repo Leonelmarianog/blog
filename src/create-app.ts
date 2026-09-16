@@ -14,6 +14,10 @@ import { ValidationExceptionFilter } from './bootstrap/exceptions/validation-exc
 import { GlobalExceptionFilter } from './bootstrap/exceptions/global-exception.filter';
 import { FormViewInterceptor } from './bootstrap/exceptions/form-view.interceptor';
 import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-session.use-case';
+import pinoHttp from 'pino-http';
+import type { DestinationStream } from 'pino';
+import { Logger } from 'nestjs-pino';
+import { buildPinoOptions } from './bootstrap/logging/pino.factory';
 
 /**
  * Builds the fully-wired INestApplication — view engine, body parsers, the Express
@@ -31,9 +35,21 @@ import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-
  * without listening, so `init()` must run here. `init()` is idempotent (guarded by
  * `isInitialized`), so the subsequent `listen()` in `main.ts` is a no-op for init.
  */
-export async function createApp(): Promise<INestApplication> {
-  const app = await NestFactory.create(AppModule, { bodyParser: false });
+export interface AppOptions {
+  pinoDestination?: DestinationStream;
+}
+
+export async function createApp(opts: AppOptions = {}): Promise<INestApplication> {
+  const app = await NestFactory.create(AppModule, { bodyParser: false, bufferLogs: true });
   const config = app.get(ConfigService);
+
+  // Use pino as Nest's logger (flushes buffered bootstrap logs).
+  app.useLogger(app.get(Logger));
+
+  // Request logging — every request (incl. middleware-thrown 403s and pre-router 404s) gets a
+  // correlation id and redacted secrets. Runs before the view engine/body parsers; the completion
+  // line is emitted on response end, by which point req.body is populated, so req.body.* redaction works.
+  app.use(pinoHttp(buildPinoOptions(config, opts.pinoDestination)));
 
   // View engine first so res.render works in filters/middleware. `configureViewEngine`
   // expects the Express instance, not the Nest app; the HttpAdapter wraps Express.
