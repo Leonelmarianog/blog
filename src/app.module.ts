@@ -6,7 +6,9 @@ import { CryptoModule } from './infrastructure/crypto/crypto.module';
 import { QueueModule } from './infrastructure/queue/queue.module';
 import { StorageModule } from './infrastructure/storage/storage.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
+import { CacheModule } from './infrastructure/cache/cache.module';
 import { RateLimitModule } from './infrastructure/ratelimit/ratelimit.module';
+import { CacheInvalidationModule } from './infrastructure/events/cache-invalidation.module';
 import { AppThrottlerGuard } from './infrastructure/ratelimit/app-throttler.guard';
 import { IamModule } from './contexts/iam/presentation/http/iam.module';
 import { MediaModule } from './contexts/media/presentation/http/media.module';
@@ -27,7 +29,9 @@ import { HealthModule } from './bootstrap/health/health.module';
     QueueModule,
     StorageModule,
     RedisModule,
+    CacheModule,
     RateLimitModule,
+    CacheInvalidationModule,
     IamModule,
     MediaModule,
     HealthModule,

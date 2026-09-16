@@ -3,7 +3,7 @@ import { ConfigService } from '../../config/config.service';
 import { EVENT_DISPATCHER, UNIT_OF_WORK } from '@kernel/application';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaUnitOfWork } from './unit-of-work';
-import { NoopEventDispatcher } from './noop-event-dispatcher';
+import { EventDispatcher } from '../events/event-dispatcher';
 
 @Global()
 @Module({
@@ -14,7 +14,7 @@ import { NoopEventDispatcher } from './noop-event-dispatcher';
       inject: [ConfigService],
     },
     PrismaUnitOfWork,
-    { provide: EVENT_DISPATCHER, useClass: NoopEventDispatcher },
+    { provide: EVENT_DISPATCHER, useClass: EventDispatcher },
     { provide: UNIT_OF_WORK, useExisting: PrismaUnitOfWork },
   ],
   exports: [PrismaService, PrismaUnitOfWork, EVENT_DISPATCHER, UNIT_OF_WORK],
