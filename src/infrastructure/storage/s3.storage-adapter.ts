@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import type { StoragePort, StoredObject } from '@contexts/media/application/ports/storage.port';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, HeadBucketCommand } from '@aws-sdk/client-s3';
+import type { StoragePort, StoredObject, StorageHealth } from '@contexts/media/application/ports/storage.port';
 
 export interface S3AdapterConfig {
   endpoint: string;
@@ -40,5 +40,14 @@ export class S3StorageAdapter implements StoragePort {
 
   publicUrl(key: string): string {
     return `${this.publicBase}/${key}`;
+  }
+
+  async health(): Promise<StorageHealth> {
+    try {
+      await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }));
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: (e as Error).message };
+    }
   }
 }

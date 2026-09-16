@@ -14,6 +14,12 @@ import { ValidationExceptionFilter } from './bootstrap/exceptions/validation-exc
 import { GlobalExceptionFilter } from './bootstrap/exceptions/global-exception.filter';
 import { FormViewInterceptor } from './bootstrap/exceptions/form-view.interceptor';
 import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-session.use-case';
+import pinoHttp from 'pino-http';
+import type { DestinationStream } from 'pino';
+import { Logger } from 'nestjs-pino';
+import { buildPinoOptions } from './bootstrap/logging/pino.factory';
+import { createCorrelationMiddleware } from './bootstrap/logging/correlation.middleware';
+import { createHelmet } from './bootstrap/helmet/helmet.factory';
 
 /**
  * Builds the fully-wired INestApplication — view engine, body parsers, the Express
@@ -31,9 +37,21 @@ import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-
  * without listening, so `init()` must run here. `init()` is idempotent (guarded by
  * `isInitialized`), so the subsequent `listen()` in `main.ts` is a no-op for init.
  */
-export async function createApp(): Promise<INestApplication> {
-  const app = await NestFactory.create(AppModule, { bodyParser: false });
+export interface AppOptions {
+  pinoDestination?: DestinationStream;
+}
+
+export async function createApp(opts: AppOptions = {}): Promise<INestApplication> {
+  const app = await NestFactory.create(AppModule, { bodyParser: false, bufferLogs: true });
   const config = app.get(ConfigService);
+
+  // Helmet first so every response (including middleware-thrown errors) carries security
+  // headers + the config-derived CSP. Mounted before pino/logger so headers land even when a
+  // downstream middleware throws before logging.
+  app.use(createHelmet(config));
+
+  // Use pino as Nest's logger (flushes buffered bootstrap logs).
+  app.useLogger(app.get(Logger));
 
   // View engine first so res.render works in filters/middleware. `configureViewEngine`
   // expects the Express instance, not the Nest app; the HttpAdapter wraps Express.
@@ -51,6 +69,14 @@ export async function createApp(): Promise<INestApplication> {
   // populated before csrf reads req.body._csrf.
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Request logging — every request (incl. csrf 403s and pre-router 404s, which mount below)
+  // gets a correlation id and redacted secrets. MUST run after the body parsers: pino-http
+  // serializes `req` once when it creates its child logger (here), so req.body is only present
+  // for the `req.body.*` redact paths if the parsers have already populated it. Helmet (Task 4)
+  // mounts above this; correlation (Task 3) mounts just below.
+  app.use(pinoHttp(buildPinoOptions(config, opts.pinoDestination)));
+  app.use(createCorrelationMiddleware());
 
   // Express middleware chain — order matters:
   //   bodyParsers -> cookieParser -> session -> remember-me -> flash -> csrf

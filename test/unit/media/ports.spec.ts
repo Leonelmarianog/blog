@@ -6,7 +6,7 @@ import * as ports from '@contexts/media/application/ports';
 describe('media application ports', () => {
   it('exports the storage port + symbol', () => {
     expect(typeof STORAGE).toBe('symbol');
-    const _check: StoragePort = { async put() { return {} as StoredObject; }, async delete() {}, publicUrl() { return ''; } };
+    const _check: StoragePort = { async put() { return {} as StoredObject; }, async delete() {}, publicUrl() { return ''; }, async health() { return { ok: true }; } };
     expect(_check).toBeDefined();
   });
 

@@ -14,6 +14,7 @@ export class FakeStorage implements StoragePort {
   }
   async delete(key: string) { this.deletes.push(key); this.puts.delete(key); }
   publicUrl(key: string) { return `http://storage.test/${key}`; }
+  async health() { return { ok: true } as const; }
 }
 
 export class FakeImageProcessor implements ImageProcessorPort {
