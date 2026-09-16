@@ -39,3 +39,8 @@ docs/
 # Misc
 .cache/
 .tmp/
+
+# Generated dev storage secrets + local-disk adapter output
+docker/garage/credentials.env
+.storage/
+.storage-test/

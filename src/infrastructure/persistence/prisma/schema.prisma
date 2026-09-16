@@ -45,3 +45,33 @@ model Token {
   usedAt       DateTime?
   user         User      @relation(fields: [userId], references: [id])
 }
+
+model Asset {
+  id             String        @id
+  ownerId        String
+  originalKey    String
+  originalMime   String
+  originalSize   Int
+  originalWidth  Int
+  originalHeight Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  variants       AssetVariant[]
+
+  @@index([ownerId])
+}
+
+model AssetVariant {
+  id      String @id
+  assetId String
+  label   String
+  key     String
+  mime    String
+  size    Int
+  width   Int
+  height  Int
+  asset   Asset   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, label])
+  @@index([assetId])
+}

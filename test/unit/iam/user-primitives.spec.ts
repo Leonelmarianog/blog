@@ -1,6 +1,6 @@
 import { Email } from '@contexts/iam/domain/user/email.vo';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
-import { isRole, ROLES } from '@contexts/iam/domain/authorization/role';
+import { isRole, ROLES } from '@kernel/domain/authorization/role';
 import { isUserStatus } from '@contexts/iam/domain/user/user-status';
 import type { Identifier, UserId } from '@contexts/iam/domain/user/user.types';
 

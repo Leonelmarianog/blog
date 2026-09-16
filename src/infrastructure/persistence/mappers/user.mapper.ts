@@ -3,7 +3,7 @@ import { Email } from '@contexts/iam/domain/user/email.vo';
 import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import { DisplayName } from '@contexts/iam/domain/user/display-name.vo';
 import { User } from '@contexts/iam/domain/user/user.aggregate';
-import type { Role } from '@contexts/iam/domain/authorization/role';
+import type { Role } from '@kernel/domain/authorization/role';
 import type { UserStatus } from '@contexts/iam/domain/user/user-status';
 import type { UserProps } from '@contexts/iam/domain/user/user.aggregate';
 import type { Prisma } from '../prisma/client';

@@ -121,7 +121,7 @@ export default [
                 'context-application-port',
               ],
             },
-            { from: 'context-presentation', allow: ['context-application', 'context-presentation'] },
+            { from: 'context-presentation', allow: ['context-application', 'context-presentation', 'kernel-application'] },
             {
               from: 'context-composition',
               allow: [

@@ -5,7 +5,7 @@ import { PASSWORD_HASHER } from '@contexts/iam/application/ports/password-hasher
 import { TOKEN_HASHER } from '@contexts/iam/application/ports/token-hasher.port';
 import type { PasswordHasherPort } from '@contexts/iam/application/ports/password-hasher.port';
 import type { TokenHasherPort } from '@contexts/iam/application/ports/token-hasher.port';
-import type { Role } from '@contexts/iam/domain/authorization/role';
+import type { Role } from '@kernel/domain/authorization/role';
 import type { UserStatus } from '@contexts/iam/domain/user/user-status';
 import type { TokenType } from '@contexts/iam/domain/token/token.types';
 

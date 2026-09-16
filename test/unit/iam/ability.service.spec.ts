@@ -1,4 +1,4 @@
-import { AbilityService } from '@contexts/iam/application/authorization/ability.service';
+import { AbilityService } from '@kernel/application/authorization/ability.service';
 
 describe('AbilityService', () => {
   it('builds an ability that mirrors createAbilityFor', () => {

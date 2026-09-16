@@ -1,5 +1,5 @@
 import { type ExecutionContext } from '@nestjs/common';
-import { SessionGuard } from '@contexts/iam/presentation/http/guards/session.guard';
+import { SessionGuard } from '@kernel/application/authorization/session.guard';
 import { InMemorySession } from './in-memory-session';
 
 type Res = { redirect: (url: string) => void; status: () => unknown };

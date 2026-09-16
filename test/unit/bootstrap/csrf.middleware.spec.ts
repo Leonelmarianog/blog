@@ -4,7 +4,7 @@ import { InMemorySession } from '../iam/in-memory-session';
 
 type Body = { _csrf?: unknown };
 type Locals = { csrfToken?: string };
-type Req = { method: string; body: Body; session: InMemorySession; headers: Record<string, unknown> };
+type Req = { method: string; body: Body; session: InMemorySession; headers: Record<string, string | string[] | undefined> };
 type Res = { locals: Locals };
 
 function mk(method = 'GET', body: Body = {}) {
@@ -44,5 +44,17 @@ describe('CsrfMiddleware', () => {
     const { req, res, session } = mk('POST', { _csrf: 'wrong' });
     session.csrfToken = 'tok';
     await expect(new CsrfMiddleware().use(req, res, () => {})).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('defers a multipart POST (no body check) so the route interceptor validates after multer', async () => {
+    const session = new InMemorySession();
+    const locals: Locals = {};
+    const req: Req = { method: 'POST', body: {}, session, headers: { 'content-type': 'multipart/form-data; boundary=---' } };
+    const res: Res = { locals };
+    let next = false;
+    await new CsrfMiddleware().use(req, res, () => { next = true; });
+    // No throw even though _csrf is absent — the CsrfInterceptor validates post-multer.
+    expect(next).toBe(true);
+    expect(locals.csrfToken).toBe(session.csrfToken);
   });
 });

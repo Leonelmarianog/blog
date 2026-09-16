@@ -16,9 +16,9 @@ import { ResendVerificationDto } from '../dto/resend-verification.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
-import { SessionGuard } from '../guards/session.guard';
-import { PoliciesGuard } from '../guards/policies.guard';
-import { Policies } from '../decorators/policies.decorator';
+import { SessionGuard } from '@kernel/application/authorization/session.guard';
+import { PoliciesGuard } from '@kernel/application/authorization/policies.guard';
+import { Policies } from '@kernel/application/authorization/policies.decorator';
 import { FormView } from '@bootstrap/exceptions/form-view.decorator';
 
 /**
