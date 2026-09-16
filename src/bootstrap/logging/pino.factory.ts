@@ -20,9 +20,26 @@ const REDACT = {
 /**
  * Custom `req` serializer — includes `id` and `body` so the redact paths above
  * (`req.body.password`, …) have something to match. pino applies redact after serializers.
+ *
+ * pino-http wraps this via `wrapRequestSerializer`, so the argument is NOT the raw Express
+ * request — it is pino-std-serializers' `req` object (`{ id, method, url, headers, … }`) with
+ * the raw Express request attached as the non-enumerable `raw` property. `body` therefore lives
+ * on `req.raw.body` (populated by the body parsers before the response finishes), not `req.body`.
  */
-function reqSerializer(req: { id?: string; method?: string; url?: string; headers?: unknown; body?: unknown }) {
-  return { id: req.id, method: req.method, url: req.url, headers: req.headers, body: req.body };
+function reqSerializer(req: {
+  id?: string;
+  method?: string;
+  url?: string;
+  headers?: unknown;
+  raw?: { body?: unknown };
+}) {
+  return {
+    id: req.id,
+    method: req.method,
+    url: req.url,
+    headers: req.headers,
+    body: req.raw?.body,
+  };
 }
 
 /**

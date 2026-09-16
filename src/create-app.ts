@@ -46,11 +46,6 @@ export async function createApp(opts: AppOptions = {}): Promise<INestApplication
   // Use pino as Nest's logger (flushes buffered bootstrap logs).
   app.useLogger(app.get(Logger));
 
-  // Request logging — every request (incl. middleware-thrown 403s and pre-router 404s) gets a
-  // correlation id and redacted secrets. Runs before the view engine/body parsers; the completion
-  // line is emitted on response end, by which point req.body is populated, so req.body.* redaction works.
-  app.use(pinoHttp(buildPinoOptions(config, opts.pinoDestination)));
-
   // View engine first so res.render works in filters/middleware. `configureViewEngine`
   // expects the Express instance, not the Nest app; the HttpAdapter wraps Express.
   configureViewEngine(app.getHttpAdapter().getInstance());
@@ -67,6 +62,13 @@ export async function createApp(opts: AppOptions = {}): Promise<INestApplication
   // populated before csrf reads req.body._csrf.
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Request logging — every request (incl. csrf 403s and pre-router 404s, which mount below)
+  // gets a correlation id and redacted secrets. MUST run after the body parsers: pino-http
+  // serializes `req` once when it creates its child logger (here), so req.body is only present
+  // for the `req.body.*` redact paths if the parsers have already populated it. Helmet (Task 4)
+  // mounts above this; correlation (Task 3) mounts just below.
+  app.use(pinoHttp(buildPinoOptions(config, opts.pinoDestination)));
 
   // Express middleware chain — order matters:
   //   bodyParsers -> cookieParser -> session -> remember-me -> flash -> csrf
