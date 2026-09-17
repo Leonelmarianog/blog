@@ -6,10 +6,12 @@ import path from 'node:path';
 type StartedPg = Awaited<ReturnType<PostgreSqlContainer['start']>>;
 type StartedRedis = Awaited<ReturnType<RedisContainer['start']>>;
 type StartedGarage = Awaited<ReturnType<GenericContainer['start']>>;
+type StartedMailpit = Awaited<ReturnType<GenericContainer['start']>>;
 
 let pg: StartedPg | undefined;
 let redis: StartedRedis | undefined;
 let garage: StartedGarage | undefined;
+let mailpit: StartedMailpit | undefined;
 
 const GARAGE_TOML = path.resolve('docker/garage/garage.toml');
 const CONF = '/etc/garage/garage.toml';
@@ -87,6 +89,21 @@ export async function startContainers(): Promise<void> {
   process.env.S3_SECRET_ACCESS_KEY = secret;
   process.env.S3_PUBLIC_BASE = `http://localhost:${port}/${BUCKET}`;
   process.env.S3_FORCE_PATH_STYLE = 'true';
+
+  // Mailpit (fake SMTP + HTTP API). The SMTP port (1025) receives mail from the app's
+  // NodemailerMailAdapter; the API port (8025) is queried by helpers/mail.ts. The wait
+  // strategy keys on the API listen line so the API is answerable by the time we return.
+  mailpit = await new GenericContainer('axllent/mailpit:latest')
+    .withExposedPorts(1025, 8025)
+    .withWaitStrategy(Wait.forLogMessage(/\[http\] listening on .*8025/, 1))
+    .start();
+  process.env.MAIL_DRIVER = 'smtp';
+  process.env.SMTP_HOST = mailpit.getHost();
+  process.env.SMTP_PORT = String(mailpit.getMappedPort(1025));
+  process.env.SMTP_SECURE = 'false';
+  process.env.MAIL_FROM = 'no-reply@blog.test';
+  process.env.APP_URL = 'http://app.test'; // deterministic link prefix for assertions
+  process.env.MAILPIT_API_URL = `http://${mailpit.getHost()}:${mailpit.getMappedPort(8025)}`;
 }
 
 /**
@@ -94,6 +111,7 @@ export async function startContainers(): Promise<void> {
  * globalSetup, so the module-level handles are still in scope).
  */
 export async function stopContainers(): Promise<void> {
+  await mailpit?.stop();
   await garage?.stop();
   await redis?.stop();
   await pg?.stop();
