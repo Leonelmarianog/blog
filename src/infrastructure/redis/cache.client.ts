@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
 import type { ConfigService } from '../../config/config.service';
 import type { RedisClient } from './redis.client';
+import { bootReconnectStrategy } from './redis.client';
 
 export const CACHE_REDIS = Symbol('CACHE_REDIS');
 
@@ -12,5 +13,5 @@ export const CACHE_DB = 1;
  * `CacheRedisLifecycle` (in `RedisModule`) connects and runs `SELECT 1` in `onModuleInit`.
  */
 export function createCacheClient(config: ConfigService): RedisClient {
-  return createClient({ url: config.get('REDIS_URL') });
+  return createClient({ url: config.get('REDIS_URL'), socket: { reconnectStrategy: bootReconnectStrategy } });
 }
