@@ -1,5 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
+import { getQueueToken } from '@nestjs/bullmq';
 import type { Queue } from 'bullmq';
 
 export interface MailpitMessage {
@@ -60,7 +60,7 @@ export async function waitForEmailTo(
       let failedDump = '';
       if (workerApp) {
         try {
-          const queue = workerApp.get<Queue>(InjectQueue('mail') as unknown as string);
+          const queue = workerApp.get<Queue>(getQueueToken('mail'));
           const failed = await queue.getFailed();
           failedDump = failed.map((j) => `#${j.id} ${j.name}: ${j.failedReason}`).join('\n');
         } catch {
