@@ -1,0 +1,9 @@
+<h2>{{title}}</h2>
+{{#if isAuthenticated}}
+  <p>Signed in. <a href="/profile">Profile</a> · <a href="/upload">Upload</a></p>
+  {{#if isAdmin}}
+    <p><a href="/admin/users">User administration</a></p>
+  {{/if}}
+{{else}}
+  <p><a href="/login">Log in</a> · <a href="/register">Register</a></p>
+{{/if}}
