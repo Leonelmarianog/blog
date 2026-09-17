@@ -1,4 +1,5 @@
 import { Identifier } from '@kernel/domain/identifier';
+import { DomainError } from '@kernel/domain/result';
 
 describe('Identifier', () => {
   it('generates a uuid string', () => {
@@ -12,9 +13,12 @@ describe('Identifier', () => {
     expect(id).toBe('existing-id');
   });
 
-  it('throws on empty or blank values', () => {
-    expect(() => Identifier.from<'UserId'>('')).toThrow();
-    expect(() => Identifier.from<'UserId'>('   ')).toThrow();
+  it('throws a DomainError on empty or blank values', () => {
+    expect(() => Identifier.from<'UserId'>('')).toThrow(DomainError);
+    expect(() => Identifier.from<'UserId'>('   ')).toThrow(DomainError);
+    expect(() => Identifier.from<'UserId'>('')).toThrow(
+      expect.objectContaining({ name: 'DomainError' }),
+    );
   });
 
   it('compares by value', () => {
