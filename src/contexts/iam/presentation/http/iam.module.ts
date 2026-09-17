@@ -11,7 +11,6 @@ import { UNIT_OF_WORK } from '@kernel/application';
 import { PrismaUserRepository } from '@infra/persistence/repositories/user.repository';
 import { PrismaSessionRepository } from '@infra/persistence/repositories/session.repository';
 import { PrismaTokenRepository } from '@infra/persistence/repositories/token.repository';
-import { LoggingQueueProducer } from '@infra/queue/logging-queue-producer';
 import { PasswordHasherService } from '@contexts/iam/application/services/password-hasher.service';
 import { TokenService } from '@contexts/iam/application/services/token.service';
 import { RememberMeTokenService } from '@contexts/iam/application/services/remember-me-token.service';
@@ -66,9 +65,6 @@ import { UserController } from './controllers/user.controller';
     { provide: USER_REPOSITORY, useClass: PrismaUserRepository },
     { provide: SESSION_REPOSITORY, useClass: PrismaSessionRepository },
     { provide: TOKEN_REPOSITORY, useClass: PrismaTokenRepository },
-    // QUEUE_PRODUCER is also provided by the global QueueModule — this local binding
-    // shadows the global one cleanly, and this redundancy is intentional.
-    { provide: QUEUE_PRODUCER, useClass: LoggingQueueProducer },
     UserSubjectResolver,
     {
       provide: PasswordHasherService,
@@ -165,7 +161,6 @@ import { UserController } from './controllers/user.controller';
     USER_REPOSITORY,
     SESSION_REPOSITORY,
     TOKEN_REPOSITORY,
-    QUEUE_PRODUCER,
     RotateSessionUseCase,
     AuthController,
   ],

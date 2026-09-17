@@ -30,3 +30,13 @@ process.env.RATE_LIMIT_RESEND_LIMIT = process.env.RATE_LIMIT_RESEND_LIMIT ?? '3'
 process.env.RATE_LIMIT_RESET_LIMIT = process.env.RATE_LIMIT_RESET_LIMIT ?? '5';
 // Integration tests simulate rotating IPs via X-Forwarded-For, so trust one hop.
 process.env.TRUST_PROXY = process.env.TRUST_PROXY ?? '1';
+
+// Mail / queue defaults (Plan 7c). `??` so integration container values win.
+process.env.MAIL_DRIVER = process.env.MAIL_DRIVER ?? 'log';
+process.env.SMTP_HOST = process.env.SMTP_HOST ?? '';
+process.env.SMTP_PORT = process.env.SMTP_PORT ?? '1025';
+process.env.SMTP_USER = process.env.SMTP_USER ?? '';
+process.env.SMTP_PASS = process.env.SMTP_PASS ?? '';
+process.env.SMTP_SECURE = process.env.SMTP_SECURE ?? 'false';
+process.env.MAIL_FROM = process.env.MAIL_FROM ?? 'no-reply@localhost';
+process.env.APP_URL = process.env.APP_URL ?? 'http://localhost:3000';
