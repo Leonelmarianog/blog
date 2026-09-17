@@ -16,9 +16,7 @@ import { SharedAuthzModule } from '@kernel/application/authorization';
 import { LoggerModule } from './bootstrap/logging/logger.module';
 import { HealthModule } from './bootstrap/health/health.module';
 
-// QueueModule is @Global and provides QUEUE_PRODUCER (useClass: LoggingQueueProducer).
-// IamModule also binds QUEUE_PRODUCER locally — the local binding shadows the global
-// cleanly, and this redundancy is intentional.
+// QueueModule is @Global and owns QUEUE_PRODUCER (useClass: BullMQQueueProducer) authoritatively.
 @Module({
   imports: [
     ConfigModule,
