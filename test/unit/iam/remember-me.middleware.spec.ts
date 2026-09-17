@@ -35,13 +35,14 @@ describe('RememberMeMiddleware', () => {
     expect(calledNext).toBe(true);
   });
 
-  it('rotates and sets userId + refreshed cookie on a valid credential', async () => {
+  it('rotates and sets userId + role + refreshed cookie on a valid credential', async () => {
     const { rotate, res, cookieSet } = makeDeps();
     const { req, session } = reqWith('series.token');
-    rotate.execute.mockResolvedValue({ ok: true, value: { userId: 'u1', rememberMeCookie: 'series.newtoken' } });
+    rotate.execute.mockResolvedValue({ ok: true, value: { userId: 'u1', role: 'ADMIN', rememberMeCookie: 'series.newtoken' } });
     let calledNext = false;
     await new RememberMeMiddleware(rotate as unknown as RotateSessionUseCase).use(req, res, () => { calledNext = true; });
     expect(session.userId).toBe('u1');
+    expect((session as { role?: string }).role).toBe('ADMIN');
     expect(res.cookie).toHaveBeenCalled();
     expect(cookieSet.value).toBe('series.newtoken');
     expect(calledNext).toBe(true);
