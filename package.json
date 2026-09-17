@@ -6,6 +6,8 @@
     "build": "nest build && tsc-alias -p tsconfig.build.json",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
+    "start:worker": "node dist/worker.js",
+    "start:worker:dev": "node --import tsconfig-paths/register src/worker.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:integration": "jest --config jest.integration.config.js --runInBand",
