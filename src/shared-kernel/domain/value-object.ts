@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from 'node:util';
+
 export abstract class ValueObject<T> {
   protected constructor(readonly props: T) {}
 
@@ -7,6 +9,6 @@ export abstract class ValueObject<T> {
 
   equals(other: ValueObject<T>): boolean {
     if (this === other) return true;
-    return JSON.stringify(this.props) === JSON.stringify(other.props);
+    return isDeepStrictEqual(this.props, other.props);
   }
 }

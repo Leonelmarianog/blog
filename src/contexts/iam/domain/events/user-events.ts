@@ -1,43 +1,43 @@
 import { DomainEvent } from '@kernel/domain';
 import type { UserId } from '../user/user.types';
 
-export class UserRegistered extends DomainEvent {
+export class UserRegistered extends DomainEvent<'User'> {
   constructor(userId: UserId) {
     super(userId);
   }
 }
 
-export class EmailVerified extends DomainEvent {
+export class EmailVerified extends DomainEvent<'User'> {
   constructor(userId: UserId) {
     super(userId);
   }
 }
 
-export class PasswordReset extends DomainEvent {
+export class PasswordReset extends DomainEvent<'User'> {
   constructor(userId: UserId) {
     super(userId);
   }
 }
 
-export class UserRoleChanged extends DomainEvent {
+export class UserRoleChanged extends DomainEvent<'User'> {
   constructor(userId: UserId) {
     super(userId);
   }
 }
 
-export class UserSuspended extends DomainEvent {
+export class UserSuspended extends DomainEvent<'User'> {
   constructor(userId: UserId) {
     super(userId);
   }
 }
 
-export class UserUnsuspended extends DomainEvent {
+export class UserUnsuspended extends DomainEvent<'User'> {
   constructor(userId: UserId) {
     super(userId);
   }
 }
 
-export class UserProfileUpdated extends DomainEvent {
+export class UserProfileUpdated extends DomainEvent<'User'> {
   constructor(userId: UserId) {
     super(userId);
   }

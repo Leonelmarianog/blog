@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { DomainError } from './result';
 
 export type Brand<T, B extends string> = T & { readonly __brand: B };
 
@@ -10,7 +11,7 @@ export const Identifier = {
   },
   from<B extends string>(value: string): Identifier<B> {
     if (typeof value !== 'string' || value.trim().length === 0) {
-      throw new Error(
+      throw new DomainError(
         `Invalid identifier: expected a non-empty string, received "${value}"`,
       );
     }
