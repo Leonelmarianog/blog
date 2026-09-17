@@ -1,6 +1,14 @@
 <nav>
   <a href="/" class="{{activeNav currentNav 'home'}}">Home</a>
-  <a href="/login" class="{{activeNav currentNav 'login'}}">Login</a>
-  <a href="/register" class="{{activeNav currentNav 'register'}}">Register</a>
-  {{#if isAdmin}}<a href="/admin/users" class="{{activeNav currentNav 'admin'}}">Users</a>{{/if}}
+  {{#if isAuthenticated}}
+    <a href="/profile" class="{{activeNav currentNav 'profile'}}">Profile</a>
+    {{#if isAdmin}}<a href="/admin/users" class="{{activeNav currentNav 'admin'}}">Users</a>{{/if}}
+    <form method="POST" action="/logout" class="nav-logout">
+      {{> csrf}}
+      <button type="submit">Log out</button>
+    </form>
+  {{else}}
+    <a href="/login" class="{{activeNav currentNav 'login'}}">Login</a>
+    <a href="/register" class="{{activeNav currentNav 'register'}}">Register</a>
+  {{/if}}
 </nav>
