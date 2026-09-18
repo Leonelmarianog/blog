@@ -47,7 +47,7 @@ import { UserController } from './controllers/user.controller';
 //   LogoutUseCase(sessions, tokenHasher, uow)
 //   ForgotPasswordUseCase(users, tokens, tokenService, queue, uow)
 //   ResetPasswordUseCase(tokens, users, sessions, passwordHasher, tokenHasher, uow)
-//   RotateSessionUseCase(sessions, tokenHasher, rememberMe, uow)
+//   RotateSessionUseCase(sessions, tokenHasher, rememberMe, uow, users)
 //   RevokeSessionUseCase(sessions, uow)
 //   GetCurrentUserUseCase(users)
 //   ListUsersUseCase(users)
@@ -119,7 +119,7 @@ import { UserController } from './controllers/user.controller';
     {
       provide: RotateSessionUseCase,
       useFactory: (...args: ConstructorParameters<typeof RotateSessionUseCase>) => new RotateSessionUseCase(...args),
-      inject: [SESSION_REPOSITORY, TOKEN_HASHER, RememberMeTokenService, UNIT_OF_WORK],
+      inject: [SESSION_REPOSITORY, TOKEN_HASHER, RememberMeTokenService, UNIT_OF_WORK, USER_REPOSITORY],
     },
     {
       provide: RevokeSessionUseCase,

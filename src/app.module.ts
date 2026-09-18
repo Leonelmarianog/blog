@@ -15,6 +15,7 @@ import { MediaModule } from './contexts/media/presentation/http/media.module';
 import { SharedAuthzModule } from '@kernel/application/authorization';
 import { LoggerModule } from './bootstrap/logging/logger.module';
 import { HealthModule } from './bootstrap/health/health.module';
+import { HomeModule } from './bootstrap/home/home.module';
 
 // QueueModule is @Global and owns QUEUE_PRODUCER (useClass: BullMQQueueProducer) authoritatively.
 @Module({
@@ -33,6 +34,7 @@ import { HealthModule } from './bootstrap/health/health.module';
     IamModule,
     MediaModule,
     HealthModule,
+    HomeModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: AppThrottlerGuard }],
 })

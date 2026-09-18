@@ -10,6 +10,7 @@ import { createSessionMiddleware } from './bootstrap/sessions/session-middleware
 import { FlashMiddleware } from './bootstrap/flash/flash.middleware';
 import { CsrfMiddleware } from './bootstrap/csrf/csrf.middleware';
 import { RememberMeMiddleware } from './bootstrap/remember-me/remember-me.middleware';
+import { AuthContextMiddleware } from './bootstrap/auth-context/auth-context.middleware';
 import { ValidationExceptionFilter } from './bootstrap/exceptions/validation-exception.filter';
 import { GlobalExceptionFilter } from './bootstrap/exceptions/global-exception.filter';
 import { FormViewInterceptor } from './bootstrap/exceptions/form-view.interceptor';
@@ -86,8 +87,9 @@ export async function createApp(opts: AppOptions = {}): Promise<INestApplication
   app.use(createCorrelationMiddleware());
 
   // Express middleware chain — order matters:
-  //   bodyParsers -> cookieParser -> session -> remember-me -> flash -> csrf
+  //   bodyParsers -> cookieParser -> session -> remember-me -> auth-context -> flash -> csrf
   const rememberMe = new RememberMeMiddleware(app.get(RotateSessionUseCase));
+  const authContext = new AuthContextMiddleware();
   const flash = new FlashMiddleware();
   const csrf = new CsrfMiddleware();
   app.use(cookieParser());
@@ -95,6 +97,7 @@ export async function createApp(opts: AppOptions = {}): Promise<INestApplication
   // `app.use` on INestApplication is typed `(...args: any[])`; wrap each middleware so
   // the call type-checks without an `any` token (`Parameters<typeof X.use>`).
   app.use((...a: Parameters<typeof rememberMe.use>) => rememberMe.use(...a));
+  app.use((...a: Parameters<typeof authContext.use>) => authContext.use(...a));
   app.use((...a: Parameters<typeof flash.use>) => flash.use(...a));
   app.use((...a: Parameters<typeof csrf.use>) => csrf.use(...a));
 

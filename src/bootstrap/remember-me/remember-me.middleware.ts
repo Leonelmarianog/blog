@@ -12,7 +12,7 @@ const COOKIE_OPTS = {
 };
 
 type Req = {
-  session: { userId?: string };
+  session: { userId?: string; role?: string };
   cookies?: Record<string, string>;
 };
 
@@ -41,6 +41,7 @@ export class RememberMeMiddleware implements NestMiddleware {
 
     if (result.ok) {
       req.session.userId = result.value.userId;
+      req.session.role = result.value.role;
       res.cookie(COOKIE_NAME, result.value.rememberMeCookie, COOKIE_OPTS);
     } else {
       res.clearCookie(COOKIE_NAME, { path: '/' });

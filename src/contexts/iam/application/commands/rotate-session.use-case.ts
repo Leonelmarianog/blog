@@ -1,7 +1,8 @@
 import { UseCase, ok, fail, type Result, type UnitOfWorkPort } from '@kernel/application';
 import { DomainError } from '@kernel/domain';
 import type { UserId } from '../../domain/user/user.types';
-import type { SessionRepositoryPort, TokenHasherPort } from '../ports';
+import type { Role } from '@kernel/domain/authorization/role';
+import type { SessionRepositoryPort, TokenHasherPort, UserRepositoryPort } from '../ports';
 import { RememberMeTokenService } from '../services/remember-me-token.service';
 
 export interface RotateSessionInput {
@@ -12,6 +13,7 @@ export interface RotateSessionInput {
 
 export interface RotateSessionOutput {
   userId: UserId;
+  role: Role;
   rememberMeCookie: string;
 }
 
@@ -21,6 +23,7 @@ export class RotateSessionUseCase extends UseCase<RotateSessionInput, RotateSess
     private readonly tokenHasher: TokenHasherPort,
     private readonly rememberMe: RememberMeTokenService,
     private readonly uow: UnitOfWorkPort<unknown>,
+    private readonly users: UserRepositoryPort,
   ) {
     super();
   }
@@ -48,8 +51,12 @@ export class RotateSessionUseCase extends UseCase<RotateSessionInput, RotateSess
       await this.sessions.update(session, tx);
     });
 
+    const user = await this.users.findById(session.userId);
+    if (!user) return fail(new DomainError('User not found'));
+
     return ok({
       userId: session.userId,
+      role: user.role,
       rememberMeCookie: RememberMeTokenService.formatCookie(input.series, newToken),
     });
   }

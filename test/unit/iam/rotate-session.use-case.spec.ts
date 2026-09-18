@@ -1,19 +1,22 @@
 import { RotateSessionUseCase } from '@contexts/iam/application/commands/rotate-session.use-case';
 import { RememberMeTokenService } from '@contexts/iam/application/services/remember-me-token.service';
 import { Session } from '@contexts/iam/domain/session/session.entity';
+import { User } from '@contexts/iam/domain/user/user.aggregate';
+import { HashedPassword } from '@contexts/iam/domain/user/hashed-password.vo';
 import { SessionRotated, SessionRevoked } from '@contexts/iam/domain/events/session-events';
-import { InMemorySessionRepository, FakeUnitOfWork, FakeTokenHasher } from './fakes';
+import { InMemorySessionRepository, InMemoryUserRepository, FakeUnitOfWork, FakeTokenHasher, email, name } from './fakes';
 
 const NOW = new Date('2026-01-01T00:00:00Z');
 const EXPIRY = new Date('2026-01-31T00:00:00Z');
 
 function makeRotate() {
   const sessions = new InMemorySessionRepository();
+  const users = new InMemoryUserRepository();
   const uow = new FakeUnitOfWork();
   const tokenHasher = new FakeTokenHasher();
   const rememberMe = new RememberMeTokenService(tokenHasher);
-  const useCase = new RotateSessionUseCase(sessions, tokenHasher, rememberMe, uow);
-  return { useCase, sessions, uow, tokenHasher, rememberMe };
+  const useCase = new RotateSessionUseCase(sessions, tokenHasher, rememberMe, uow, users);
+  return { useCase, sessions, users, uow, tokenHasher, rememberMe };
 }
 
 function seed(sessions: InMemorySessionRepository, series: string, token: string, hasher: FakeTokenHasher, userId = 'u1') {
@@ -28,15 +31,23 @@ function seed(sessions: InMemorySessionRepository, series: string, token: string
 }
 
 describe('RotateSessionUseCase', () => {
-  it('rotates the token for a valid series+token and returns a fresh cookie (same series)', async () => {
-    const { useCase, sessions, uow, tokenHasher } = makeRotate();
-    const session = seed(sessions, 'series1', 'token1', tokenHasher);
+  it('rotates the token for a valid series+token and returns a fresh cookie + role (same series)', async () => {
+    const { useCase, sessions, users, uow, tokenHasher } = makeRotate();
+    const user = User.register({
+      email: email('a@b.com'),
+      password: HashedPassword.fromHash('h'),
+      role: 'AUTHOR',
+      displayName: name('Ada'),
+    });
+    await users.save(user);
+    const session = seed(sessions, 'series1', 'token1', tokenHasher, user.id);
     await sessions.save(session);
 
     const result = await useCase.execute({ series: 'series1', token: 'token1', now: NOW });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.userId).toBe('u1');
+    expect(result.value.userId).toBe(user.id);
+    expect(result.value.role).toBe('AUTHOR');
     const parsed = RememberMeTokenService.parseCookie(result.value.rememberMeCookie);
     expect(parsed).not.toBeNull();
     expect(parsed!.series).toBe('series1'); // series stable
@@ -77,6 +88,14 @@ describe('RotateSessionUseCase', () => {
       now: new Date('2025-12-01T00:00:00Z'),
     });
     await sessions.save(expired);
+    const result = await useCase.execute({ series: 'series1', token: 'token1', now: NOW });
+    expect(result.ok).toBe(false);
+  });
+
+  it('fails when the session is valid but the user no longer exists', async () => {
+    const { useCase, sessions, tokenHasher } = makeRotate(); // users repo left empty
+    const session = seed(sessions, 'series1', 'token1', tokenHasher, 'ghost-user');
+    await sessions.save(session);
     const result = await useCase.execute({ series: 'series1', token: 'token1', now: NOW });
     expect(result.ok).toBe(false);
   });
